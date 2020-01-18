@@ -2,21 +2,30 @@ import * as app from "./app.js";
 import * as view from "./view_svg.js";
 import * as physics from "./move_matter.js";
 
-let phy_div = document.createElement('div');
-phy_div.style.cssText = "height:50%";
-document.body.appendChild(phy_div);
-let view_div = document.createElement('div');
-view_div.style.cssText = "height:50%";
-document.body.appendChild(view_div);
+import config from "./../config.js";
+
+
+let pyh_render_div = document.createElement('div');
+document.body.appendChild(pyh_render_div);
+let main_view_div = document.createElement('div');
+document.body.appendChild(main_view_div);
+
+if(config.matter.renderer.enabled){
+    pyh_render_div.style.cssText = "height:50%";
+    main_view_div.style.cssText = "height:50%";
+}
+else{
+    main_view_div.style.cssText = "height:100%";
+}
 
 app.init();
-view.init(view_div);
-physics.init(phy_div);
+view.init(main_view_div);
+physics.init(main_view_div,pyh_render_div);
 
 function animate(){
 
     physics.run();
-    //app.run();
+    app.run();
     requestAnimationFrame( animate );
 
 }

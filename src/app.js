@@ -5,6 +5,7 @@
  */
 
  import * as utils from "./utils.js";
+import config from "../config.js";
 
 function init(){
     const start = Date.now();
@@ -26,8 +27,7 @@ function import_graph(input){
     })
 }
 
-function run(){
-    //rect.move(200+x,100);
+function debug_rotation(){
     let el = document.getElementById('g_3');
     if(el != null){
 		let p = Math.sin(((Date.now()%1000)/1000)*Math.PI);
@@ -37,6 +37,12 @@ function run(){
 		utils.send('view_vertex',{type:'move',id:3,x:x,y:100, a:a});
 		utils.send('view_vertex',{type:'move',id:4,x:x,y:100, a:-a});
     }
+}
+
+function run(){
+	if(config.app.debug_rotation){
+		debug_rotation();
+	}
 }
 
 function onDragEvents(event){
