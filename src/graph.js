@@ -13,18 +13,17 @@ function init(){
 		document.addEventListener(eventName, onDragEvents, false)
 	})
     console.log(`app> init() in ${Date.now() - start} ms`);
-    //animate();
 }
 
 function import_graph(input){
     input.graph.vertices.forEach(vertex =>{
 		let width = 100;
 		let height = 50;
-		let x = width/2 +  Math.round((window.innerWidth-width) * Math.random());
-        let y = height/2 + Math.round((window.innerHeight/2-height) * Math.random());
-        utils.send('view_vertex',{type:'add',id:vertex._id,name:vertex.name,x:x,y:y});
-        utils.send('view_vertex',{type:'move',id:vertex._id,x:x,y:y,a:0});
-    })
+        utils.send('view_vertex',{type:'add',id:vertex._id,name:vertex.name,w:width,h:height});
+	});
+	input.graph.edges.forEach(edge => {
+		
+	});
 }
 
 function debug_rotation(){

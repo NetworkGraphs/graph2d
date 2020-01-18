@@ -1,6 +1,6 @@
 export default
 {
-    "matter":{
+    "physics":{
         "renderer":{
             "enabled":true,
             "type_lineto":false,
@@ -8,7 +8,8 @@ export default
         },
         "simulation":{
             "constraintIterations":5
-        }
+        },
+        "gravity":0
     },
     "app":{
         "debug_rotation":false

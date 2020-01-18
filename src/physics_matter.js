@@ -15,10 +15,13 @@ let engine;
 let renderer;
 //lineto renderer objects
 let canvas,context;
+let physics_element;
 
-function init(physics_element,render_element){
+function init(phy_el,render_element){
+    physics_element = phy_el;
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
+    engine.world.gravity.y = config.physics.gravity;
     console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
     let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight-50, physics_element.offsetWidth*2, 50, { label:"ground",isStatic: true });
     Matter.World.add(engine.world,[ground]);
@@ -27,14 +30,14 @@ function init(physics_element,render_element){
     window.addEventListener( 'view_vertex', onMatterVertex, false );
     window.addEventListener( 'view_edge', onMatterEdge, false );
 
-    if(config.matter.renderer.type_lineto){
+    if(config.physics.renderer.type_lineto){
         canvas = document.createElement('canvas');
         context = canvas.getContext('2d');
         canvas.width = physics_element.offsetWidth;
         canvas.height = physics_element.offsetHeight;
         render_element.appendChild(canvas);
     }
-    if(config.matter.renderer.type_native){
+    if(config.physics.renderer.type_native){
         renderer = Matter.Render.create({
             element: render_element,
             engine: engine,
@@ -51,7 +54,7 @@ function init(physics_element,render_element){
                 showSleeping:true,
                 showDebug:false,
                 wireframes: true,
-                constraintIterations:config.matter.simulation.constraintIterations
+                constraintIterations:config.physics.simulation.constraintIterations
                 //constraintIterations default = 2
                 //positionIterations default = 6
                 //velocityIterations default = 4
@@ -93,16 +96,18 @@ function run(){
             utils.send('view_vertex',{type:'move',id:body.id,x:body.position.x,y:body.position.y,a:180*body.angle / Math.PI});
         });
     }
-    if(config.matter.renderer.type_lineto){
+    if(config.physics.renderer.type_lineto){
         render_lineto(engine,context);
     }
-    if(config.matter.renderer.type_native){
+    if(config.physics.renderer.type_native){
         Matter.Render.world(renderer);
     }
 }
 
-function vertex_add(id,name,x,y){
-    let box = Matter.Bodies.rectangle(x,y,100,50,{id:id,label:name});
+function vertex_add(params){
+    let x = params.w/2 +  Math.round((physics_element.offsetWidth-params.w) * Math.random());
+    let y = params.h/2 + Math.round((physics_element.offsetHeight-2*params.h) * Math.random());
+    let box = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,label:params.name});
     Matter.World.add(engine.world,[box]);
 }
 
@@ -112,7 +117,7 @@ function vertex_move(id,x,y,a){
 function onMatterVertex(e){
     const d = e.detail;
     if(d.type == 'add'){
-        vertex_add(d.id,d.name,d.x,d.y);
+        vertex_add(d);
     }
     else if(d.type == 'move'){
         vertex_move(d.id,d.x,d.y,d.a);
@@ -131,7 +136,7 @@ function onMatterEdge(e){
 }
 
 function onResize(e){
-    if(config.matter.renderer.type_native){
+    if(config.physics.renderer.type_native){
     }
 }
 

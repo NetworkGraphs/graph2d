@@ -50,7 +50,7 @@ function vertex_move(id,x,y,a){
 function onViewVertex(e){
     const d = e.detail;
     if(d.type == 'add'){
-        vertex_add(d.id,d.name,d.x,d.y);
+        vertex_add(d.id,d.name);
     }
     else if(d.type == 'move'){
         vertex_move(d.id,d.x,d.y,d.a);
