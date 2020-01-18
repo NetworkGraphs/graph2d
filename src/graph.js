@@ -71,7 +71,7 @@ function onDragEvents(event){
 	}
 }
 
-fetch('./../graphs/GraphSON_blueprints.json')
+fetch('./graphs/GraphSON_blueprints.json')
    .then(response => response.json())
    .then(json => import_graph(json))
 
