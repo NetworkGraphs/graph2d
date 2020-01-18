@@ -3,6 +3,10 @@
 
 Note : Implementation not started, the project is in requirements collection phase
 
+# Live demo
+
+[network graph with physics](https://networkgraphs.github.io/graph2d/)
+
 # Design and Dependencies
 ## Candidates
 * Graphics : vanilla vs library (SVG / webgl)
