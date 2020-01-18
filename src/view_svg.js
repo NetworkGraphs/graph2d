@@ -1,6 +1,6 @@
 /**
  * supported events:
- * - view_vertex
+ * - graph_vertex
      { type:(add,move),id,name)}
  */
 
@@ -11,7 +11,7 @@ let height = 50;
 function init(element){
     const start = Date.now();
     draw = SVG().addTo(element).size('100%', '100%');
-    window.addEventListener( 'view_vertex', onViewVertex, false );
+    window.addEventListener( 'graph_vertex', onViewVertex, false );
     window.addEventListener( 'view_edge', onViewEdge, false );
     console.log(`view_svg> init() in ${Date.now() - start} ms`);
 }

@@ -93,3 +93,7 @@ Nodes/Edges can be referred to as elements
 
 # References
 * [GraphSon_blueprint.json](graphs/GraphSON_blueprints.json) taken from [GraphSON Reader and Write](https://github.com/tinkerpop/blueprints/wiki/GraphSON-Reader-and-Writer-Library)
+
+# Samples
+* [The eyes have it](https://codepen.io/shubniggurath/pen/RqYxoz)
+

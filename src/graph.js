@@ -1,7 +1,7 @@
 /**
  * 
  * used sent events:
- * - view_vertex
+ * - graph_vertex
  */
 
  import * as utils from "./utils.js";
@@ -19,10 +19,10 @@ function import_graph(input){
     input.graph.vertices.forEach(vertex =>{
 		let width = 100;
 		let height = 50;
-        utils.send('view_vertex',{type:'add',id:vertex._id,name:vertex.name,w:width,h:height});
+        utils.send('graph_vertex',{type:'add',id:vertex._id,name:vertex.name,w:width,h:height});
 	});
 	input.graph.edges.forEach(edge => {
-		
+        utils.send('graph_edge',{id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
 	});
 }
 
@@ -33,8 +33,8 @@ function debug_rotation(){
 		let x = 200+p*200;
 		let a = 90*p;
 		console.log(`app> x= ${x.toFixed(2)}`);
-		utils.send('view_vertex',{type:'move',id:3,x:x,y:100, a:a});
-		utils.send('view_vertex',{type:'move',id:4,x:x,y:100, a:-a});
+		utils.send('graph_vertex',{type:'move',id:3,x:x,y:100, a:a});
+		utils.send('graph_vertex',{type:'move',id:4,x:x,y:100, a:-a});
     }
 }
 

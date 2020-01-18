@@ -9,7 +9,8 @@ export default
         "simulation":{
             "constraintIterations":5
         },
-        "gravity":0
+        "gravity":0,
+        "move_objects_with_mouse":true
     },
     "app":{
         "debug_rotation":false
