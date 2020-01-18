@@ -7,12 +7,7 @@
 import * as utils from "./../src/utils.js";
 import config from "./../config.js";
 
-let Engine = Matter.Engine;
 let engine;
-let World = Matter.World;
-let Bodies = Matter.Bodies;
-let Render = Matter.Render;
-let Composite = Matter.Composite;
 let renderer;
 let canvas,context;
 
@@ -23,37 +18,40 @@ function init(element){
     canvas.height = element.offsetHeight;
     element.appendChild(canvas);
     const start = Date.now();
-    engine = Engine.create();
+    engine = Matter.Engine.create();
     console.log(`element width = ${element.offsetWidth} ; height = ${element.offsetHeight}`);
-    let ground = Bodies.rectangle(0, element.offsetHeight-50, element.offsetWidth*2, 50, { label:"ground",isStatic: true });
-    World.add(engine.world,[ground]);
+    let ground = Matter.Bodies.rectangle(0, element.offsetHeight-50, element.offsetWidth*2, 50, { label:"ground",isStatic: true });
+    Matter.World.add(engine.world,[ground]);
     window.addEventListener( 'view_vertex', onMatterVertex, false );
     window.addEventListener( 'view_edge', onMatterEdge, false );
-    if(config.matter.renderer.enabled){
-        renderer = Render.create({
-            element: element,
-            engine: engine,
-            options: {
-                width: element.width,
-                height: element.height,
-                showVelocity: true
-            }
-        });            
-    }
+    //if(config.matter.renderer.enabled){
+    //    renderer = Matter.Render.create({
+    //        element: element,
+    //        engine: engine,
+    //        options: {
+    //            width: element.width,
+    //            height: element.height,
+    //            showAngleIndicator: true,
+    //            showVelocity: true
+    //        }
+    //    });
+    //    //Matter.Render.run(renderer);
+    //}
 
     console.log(`move_matter> init() in ${Date.now() - start} ms`);
 }
 
 function run(){
     if(engine.world.bodies.length > 1){
-        Engine.update(engine,1000/60);
+        Matter.Engine.update(engine,1000/60);
         engine.world.bodies.forEach(body => {
             //if(body.id == 3){console.log(`phy> x= ${body.position.x.toFixed(2)} , y = ${body.position.y.toFixed(2)} , a = ${body.angle.toFixed(2)}`);}
             utils.send('view_vertex',{type:'move',id:body.id,x:body.position.x,y:body.position.y,a:180*body.angle / Math.PI});
         });
     }
     if(config.matter.renderer.enabled){
-        let bodies = Composite.allBodies(engine.world);
+    //if(false){
+            let bodies = Matter.Composite.allBodies(engine.world);
         context.fillStyle = '#fff';
         context.fillRect(0, 0, canvas.width, canvas.height);
         context.beginPath();
@@ -77,8 +75,8 @@ function run(){
 }
 
 function vertex_add(id,name,x,y){
-    let box = Bodies.rectangle(x,y,100,50,{id:id,label:name});
-    World.add(engine.world,[box]);
+    let box = Matter.Bodies.rectangle(x,y,100,50,{id:id,label:name});
+    Matter.World.add(engine.world,[box]);
 }
 
 function vertex_move(id,x,y,a){
