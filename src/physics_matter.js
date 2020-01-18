@@ -1,10 +1,16 @@
 /**
- * supported events:
- * - graph_vertex
- *   { type:(add,move),id,name)}
+ * exported functions:
+ * - init
+ * - run
+ * 
+ * sent events:
+ * - graph_vertex   (move)
+ * - graph_edge     (refresh_all)
  *
- * - graph_edge
- *   params: {id, label, src, dest, weight)}
+ * received events:
+ * - resize
+ * - graph_vertex   (add)
+ * - graph_edge     (add)
  *
  * engine -> world -> bodies
  * renderer -> engine
@@ -26,8 +32,8 @@ function init(phy_el,render_element){
     engine = Matter.Engine.create({enableSleeping:true});
     engine.world.gravity.y = config.physics.gravity;
     console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
-    let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"gr0" ,label:"ground",isStatic: true ,isvertex:false});
-    let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"gr0" ,label:"ceiling",isStatic: true ,isvertex:false});
+    let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
+    let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
     Matter.World.add(engine.world,[ground,ceiling]);
 
     window.addEventListener( 'resize', onResize, false );
@@ -108,14 +114,19 @@ function render_lineto(engine, context){
 }
 
 function run(){
+    let any_vertex_moved = false;
     if(engine.world.bodies.length > 1){
         Matter.Engine.update(engine,1000/60);
         engine.world.bodies.forEach(body => {
             //if(body.id == 3){console.log(`phy> x= ${body.position.x.toFixed(2)} , y = ${body.position.y.toFixed(2)} , a = ${body.angle.toFixed(2)}`);}
             if(body.isvertex){
                 utils.send('graph_vertex',{type:'move',id:body.id,x:body.position.x,y:body.position.y,a:180*body.angle / Math.PI});
+                any_vertex_moved = true;
             }
         });
+    }
+    if(any_vertex_moved){
+        utils.send('graph_edge',{type:'refresh_all'});
     }
     if(config.physics.renderer.type_lineto){
         render_lineto(engine,context);
@@ -132,16 +143,10 @@ function vertex_add(params){
     Matter.World.add(engine.world,[box]);
 }
 
-function vertex_move(id,x,y,a){
-}
-
 function onMatterVertex(e){
     const d = e.detail;
     if(d.type == 'add'){
         vertex_add(d);
-    }
-    else if(d.type == 'move'){
-        vertex_move(d.id,d.x,d.y,d.a);
     }
 }
 
@@ -162,7 +167,9 @@ function edge_add(params){
 }
 
 function onMatterEdge(e){
-    edge_add(e.detail);
+    if(e.detail.type == "add"){
+        edge_add(e.detail);
+    }
 }
 
 function onResize(e){

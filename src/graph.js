@@ -1,29 +1,47 @@
 /**
  * 
- * used sent events:
- * - graph_vertex
+ * sent events:
+ * - graph_vertex (add) (move) for debug
+ * - graph_edge (add)
+ * 
+ * received events:
+ * - drag & drop ('dragenter', 'dragover', 'dragleave', 'drop')
+ * 
  */
 
- import * as utils from "./utils.js";
+import * as utils from "./utils.js";
 import config from "../config.js";
+
+let graph;
 
 function init(){
     const start = Date.now();
 	['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
 		document.addEventListener(eventName, onDragEvents, false)
-	})
-    console.log(`app> init() in ${Date.now() - start} ms`);
+	});
+	window.addEventListener('graph_edge', onGraphEdge, false);
+    console.log(`graph> init() in ${Date.now() - start} ms`);
 }
 
 function import_graph(input){
-    input.graph.vertices.forEach(vertex =>{
-		let width = 100;
-		let height = 50;
-        utils.send('graph_vertex',{type:'add',id:vertex._id,name:vertex.name,w:width,h:height});
+	graph = input.graph;
+    graph.vertices.forEach(vertex =>{
+        utils.send('graph_vertex',{type:'add',id:vertex._id,name:vertex.name,w:100,h:50});
 	});
-	input.graph.edges.forEach(edge => {
-        utils.send('graph_edge',{id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
+	graph.edges.forEach(edge => {
+        utils.send('graph_edge',{type:"add",id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
 	});
+    graph.vertices.forEach(vertex =>{
+        utils.send('graph_vertex',{type:'re_add',id:vertex._id,name:vertex.name,w:100,h:50});
+	});
+}
+
+function onGraphEdge(e){
+	if(e.detail.type == "refresh_all"){
+		graph.edges.forEach(edge => {
+			utils.send('graph_edge',{type:"refresh",id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
+		});
+		}
 }
 
 function debug_rotation(){
@@ -32,7 +50,7 @@ function debug_rotation(){
 		let p = Math.sin(((Date.now()%1000)/1000)*Math.PI);
 		let x = 200+p*200;
 		let a = 90*p;
-		console.log(`app> x= ${x.toFixed(2)}`);
+		console.log(`graph> x= ${x.toFixed(2)}`);
 		utils.send('graph_vertex',{type:'move',id:3,x:x,y:100, a:a});
 		utils.send('graph_vertex',{type:'move',id:4,x:x,y:100, a:-a});
     }
