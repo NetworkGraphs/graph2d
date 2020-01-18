@@ -17,7 +17,12 @@ function init(){
 
 function import_graph(input){
     input.graph.vertices.forEach(vertex =>{
-        utils.send('view_vertex',{type:'add',id:vertex._id,name:vertex.name});
+		let width = 100;
+		let height = 50;
+		let x = width/2 +  Math.round((window.innerWidth-width) * Math.random());
+        let y = height/2 + Math.round((window.innerHeight/2-height) * Math.random());
+        utils.send('view_vertex',{type:'add',id:vertex._id,name:vertex.name,x:x,y:y});
+        utils.send('view_vertex',{type:'move',id:vertex._id,x:x,y:y,a:0});
     })
 }
 
@@ -25,8 +30,12 @@ function run(){
     //rect.move(200+x,100);
     let el = document.getElementById('g_3');
     if(el != null){
-        let x = 100*Math.sin(((Date.now()%1000)/1000)*Math.PI);
-        utils.send('view_vertex',{type:'move',id:3,x:200+x,y:100});
+		let p = Math.sin(((Date.now()%1000)/1000)*Math.PI);
+		let x = 200+p*200;
+		let a = 90*p;
+		console.log(`app> x= ${x.toFixed(2)}`);
+		utils.send('view_vertex',{type:'move',id:3,x:x,y:100, a:a});
+		utils.send('view_vertex',{type:'move',id:4,x:x,y:100, a:-a});
     }
 }
 
