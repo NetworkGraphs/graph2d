@@ -17,5 +17,8 @@ export default
     },
     "stats":{
         "enabled":true
+    },
+    "dat_gui":{
+        "enabled":true
     }
 }

@@ -34,7 +34,7 @@ Existing Graph formats :
 
 ## Other dependencies
 * stats.js : 0.17.0
-
+* gui.js : as module
 # Development steps
 * drag and drop a file
 

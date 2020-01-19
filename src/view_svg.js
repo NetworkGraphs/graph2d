@@ -17,7 +17,7 @@ function init(element){
 }
 
 function vertex_add(id,name){
-    console.log(`view_svg> added ${id}`);
+    console.log(`view_svg> added node '${name}'`);
     let group = draw.group().id('g_'+id);
     let text = draw.text(name).id('t_'+id);
     let vert = draw
@@ -42,7 +42,7 @@ function vertex_readd(id, name){
 function add_line(params){
     let start = SVG('#g_'+params.src);
     let stop = SVG('#g_'+params.dest);
-    console.log(`svg> edge from ${params.src} to ${params.dest} : ${start.transform('e')} -> ${stop.transform('f')}`);
+    console.log(`svg> added edge from ${params.src} to ${params.dest}`);
     //let line = draw.line(0, 0, 100, 150).stroke({ width: 1 })
     var line = draw.line(0, 100, 100, 0).id('l_'+params.id).move(20, 20);
     line.stroke({ color: '#f06', width: 10, linecap: 'round' });

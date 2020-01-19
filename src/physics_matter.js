@@ -11,8 +11,10 @@
  * - resize
  * - graph_vertex   (add_before_edge)
  * - graph_edge     (add)
+ * - engine         (stiffness, damping)
  *
  * engine -> world -> bodies
+ *                 -> constraints
  * renderer -> engine
  * 
  */
@@ -31,6 +33,7 @@ function init(phy_el,render_element){
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
     engine.world.gravity.y = config.physics.gravity;
+    
     //console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
     let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
     let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
@@ -39,6 +42,7 @@ function init(phy_el,render_element){
     window.addEventListener( 'resize', onResize, false );
     window.addEventListener( 'graph_vertex', onMatterVertex, false );
     window.addEventListener( 'graph_edge', onMatterEdge, false );
+    window.addEventListener( 'engine', onEngine, false );
 
     if(config.physics.renderer.type_lineto){
         canvas = document.createElement('canvas');
@@ -91,56 +95,66 @@ function init(phy_el,render_element){
 }
 
 function render_lineto(engine, context){
-    let bodies = Matter.Composite.allBodies(engine.world);
     context.fillStyle = '#fff';
     context.fillRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
 
-    for (var i = 0; i < bodies.length; i += 1) {
-        var vertices = bodies[i].vertices;
-
+    engine.world.bodies.forEach(body => {
+        var vertices = body.vertices;
         context.moveTo(vertices[0].x, vertices[0].y);
-
         for (var j = 1; j < vertices.length; j += 1) {
             context.lineTo(vertices[j].x, vertices[j].y);
         }
-
         context.lineTo(vertices[0].x, vertices[0].y);
-    }
+    });
 
     context.lineWidth = 1;
     context.strokeStyle = '#999';
     context.stroke();    
 }
 
+function keep_vertices_horizontal(){
+    engine.world.bodies.forEach(body => {
+        if(body.isvertex){
+            const delta = 0 - body.angle;
+            body.torque = 0.5 * delta;//P controller, the air friction will do the rest
+        }
+    });
+}
+
+function apply_custom_forces(){
+    keep_vertices_horizontal();
+}
+
 let last_run = 0;
 let last_delta = 0;
 
 function get_delta_correction(){
-    let delta = 1000/60;
-    let correction = 1.0;
-    if(last_run == 0){//first run -> no delta, no correction
+    let delta = 1000/60;            //used as default for first interations only
+    let correction = 1.0;           //used as default for first interations only
+    const max_cpu_ms = 100;         //used to filter page sleep in the background 100 => 1000/100 = 10 fps
+    if(last_run == 0){              //first run -> no delta, no correction
         const this_run = Date.now();
         last_run = this_run;
     }
     else{
-        if(last_delta == 0){//second run -> first delta but no correction yet
+        if(last_delta == 0){        //second run -> first delta but no correction yet
             const this_run = Date.now();
             delta = this_run - last_run;
-            if(delta > 100){//avoids instabilities after pause (window in background) or with slow cpu
-                delta = 100;
+            if(delta > max_cpu_ms){        //avoids instabilities after pause (window in background) or with slow cpu
+                delta = max_cpu_ms;
             }
             last_run = this_run;
             last_delta = delta;
         }
-        else{//run > 2 => delta + correction
+        else{                       //run > 2 => delta + correction
             const this_run = Date.now();
             delta = this_run - last_run;
-            if(delta > 100){//avoids instabilities after pause (window in background) or with slow cpu
-                delta = 100;
+            if(delta > max_cpu_ms){        //avoids instabilities after pause (window in background) or with slow cpu
+                delta = max_cpu_ms;
             }
             correction = delta / last_delta;
-            console.log(`phy> delta: ${delta}, last_delta:${last_delta} , correction: ${correction}`);
+            //console.log(`phy> delta: ${delta}, last_delta:${last_delta} , correction: ${correction}`);
             last_run = this_run;
             last_delta = delta;
         }
@@ -150,6 +164,8 @@ function get_delta_correction(){
 
 function run(){
     let any_vertex_to_move = false;
+
+    apply_custom_forces();
 
     const{delta,correction} = get_delta_correction();
     Matter.Engine.update(engine,delta,correction);
@@ -176,7 +192,11 @@ function vertex_add(params){
     let x = params.w/2 +  Math.round((physics_element.offsetWidth-params.w) * Math.random());
     let y = params.h/2 + Math.round((physics_element.offsetHeight-2*params.h) * Math.random());
     let box = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,name:params.name ,isvertex:true});
-    Matter.World.add(engine.world,[box]);
+
+    let frictionAir = localStorage.getItem("frictionAir");
+    box.frictionAir = (frictionAir === null)?0.3:frictionAir;
+    //console.log(`phy> ${params.name} has frictionAir at ${frictionAir}`);
+    Matter.World.addBody(engine.world,box);
 }
 
 function onMatterVertex(e){
@@ -190,7 +210,7 @@ function edge_add(params){
     //console.log(`phy> should add edge from ${params.src} to ${params.dest}`);
     let b_1 = engine.world.bodies.find(body => (body.id == params.src));
     let b_2 = engine.world.bodies.find(body => (body.id == params.dest));
-    console.log(`phy> add edge (${params.weight.toFixed(2)}) from ${b_1.name} to ${b_2.name}`);
+    console.log(`phy> added edge from '${b_1.name}' to '${b_2.name}' with weight (${params.weight.toFixed(2)})`);
 
     var constraint = Matter.Constraint.create({
         bodyA: b_1,
@@ -199,7 +219,7 @@ function edge_add(params){
         stiffness: 0.01,
         damping: 0.05
     });
-    Matter.World.add(engine.world,constraint);
+    Matter.World.addConstraint(engine.world,constraint);
 }
 
 function onMatterEdge(e){
@@ -210,6 +230,19 @@ function onMatterEdge(e){
 
 function onResize(e){
     if(config.physics.renderer.type_native){
+    }
+}
+
+function onEngine(e){
+    if(typeof(e.detail.stiffness) != "undefined"){
+        engine.world.constraints.forEach(constraint => {constraint.stiffness = e.detail.stiffness;});
+    }
+    if(typeof(e.detail.damping) != "undefined"){
+        engine.world.constraints.forEach(constraint => {constraint.damping = e.detail.damping;});
+    }
+    if(typeof(e.detail.frictionAir) != "undefined"){
+        engine.world.bodies.forEach(body => {body.frictionAir = e.detail.frictionAir;});
+        localStorage.setItem("frictionAir",e.detail.frictionAir);
     }
 }
 
