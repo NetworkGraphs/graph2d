@@ -9,7 +9,7 @@
  *
  * received events:
  * - resize
- * - graph_vertex   (add)
+ * - graph_vertex   (add_before_edge)
  * - graph_edge     (add)
  *
  * engine -> world -> bodies
@@ -31,7 +31,7 @@ function init(phy_el,render_element){
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
     engine.world.gravity.y = config.physics.gravity;
-    console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
+    //console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
     let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
     let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
     Matter.World.add(engine.world,[ground,ceiling]);
@@ -87,7 +87,7 @@ function init(phy_el,render_element){
         Matter.World.add(engine.world, mouseConstraint);
 
     }
-    console.log(`move_matter> init() in ${Date.now() - start} ms`);
+    console.log(`phy> init() in ${Date.now() - start} ms`);
 }
 
 function render_lineto(engine, context){
@@ -113,19 +113,55 @@ function render_lineto(engine, context){
     context.stroke();    
 }
 
-function run(){
-    let any_vertex_moved = false;
-    if(engine.world.bodies.length > 1){
-        Matter.Engine.update(engine,1000/60);
-        engine.world.bodies.forEach(body => {
-            //if(body.id == 3){console.log(`phy> x= ${body.position.x.toFixed(2)} , y = ${body.position.y.toFixed(2)} , a = ${body.angle.toFixed(2)}`);}
-            if(body.isvertex){
-                utils.send('graph_vertex',{type:'move',id:body.id,x:body.position.x,y:body.position.y,a:180*body.angle / Math.PI});
-                any_vertex_moved = true;
-            }
-        });
+let last_run = 0;
+let last_delta = 0;
+
+function get_delta_correction(){
+    let delta = 1000/60;
+    let correction = 1.0;
+    if(last_run == 0){//first run -> no delta, no correction
+        const this_run = Date.now();
+        last_run = this_run;
     }
-    if(any_vertex_moved){
+    else{
+        if(last_delta == 0){//second run -> first delta but no correction yet
+            const this_run = Date.now();
+            delta = this_run - last_run;
+            if(delta > 100){//avoids instabilities after pause (window in background) or with slow cpu
+                delta = 100;
+            }
+            last_run = this_run;
+            last_delta = delta;
+        }
+        else{//run > 2 => delta + correction
+            const this_run = Date.now();
+            delta = this_run - last_run;
+            if(delta > 100){//avoids instabilities after pause (window in background) or with slow cpu
+                delta = 100;
+            }
+            correction = delta / last_delta;
+            console.log(`phy> delta: ${delta}, last_delta:${last_delta} , correction: ${correction}`);
+            last_run = this_run;
+            last_delta = delta;
+        }
+    }
+    return {delta:delta, correction:correction};
+}
+
+function run(){
+    let any_vertex_to_move = false;
+
+    const{delta,correction} = get_delta_correction();
+    Matter.Engine.update(engine,delta,correction);
+
+    engine.world.bodies.forEach(body => {
+        if(body.isvertex){
+            utils.send('graph_vertex',{type:'move',id:body.id,x:body.position.x,y:body.position.y,a:180*body.angle / Math.PI});
+            any_vertex_to_move = true;
+        }
+    });
+
+    if(any_vertex_to_move){
         utils.send('graph_edge',{type:'refresh_all'});
     }
     if(config.physics.renderer.type_lineto){
@@ -145,7 +181,7 @@ function vertex_add(params){
 
 function onMatterVertex(e){
     const d = e.detail;
-    if(d.type == 'add'){
+    if(d.type == 'add_before_edge'){
         vertex_add(d);
     }
 }

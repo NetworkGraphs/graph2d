@@ -32,6 +32,9 @@ Existing Graph formats :
 * Graphviz (.dot, .gv)
 * [GraphSON](https://github.com/thinkaurelius/faunus/wiki/GraphSON-Format)
 
+## Other dependencies
+* stats.js : 0.17.0
+
 # Development steps
 * drag and drop a file
 

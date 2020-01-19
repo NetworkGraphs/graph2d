@@ -14,5 +14,8 @@ export default
     },
     "app":{
         "debug_rotation":false
+    },
+    "stats":{
+        "enabled":true
     }
 }

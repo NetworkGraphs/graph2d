@@ -1,6 +1,7 @@
 import * as graph from "./graph.js";
 import * as view from "./view_svg.js";
 import * as physics from "./physics_matter.js";
+import * as stats from "./stats_app.js";
 
 import config from "./../config.js";
 
@@ -21,11 +22,13 @@ else{
 graph.init();
 view.init(main_view_div);
 physics.init(main_view_div,pyh_render_div);
+stats.init();
 
 function animate(){
 
-    physics.run();
-    graph.run();
+    stats.begin();
+    physics.run();//not only physics but also rendering through events
+    stats.end();
     requestAnimationFrame( animate );
 
 }

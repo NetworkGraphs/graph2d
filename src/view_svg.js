@@ -92,13 +92,13 @@ function vertex_move(id,x,y,a){
 
 function onViewVertex(e){
     const d = e.detail;
-    if(d.type == 'add'){
+    if(d.type == 'add_before_edge'){
         vertex_add(d.id,d.name);
     }
     else if(d.type == 'move'){
         vertex_move(d.id,d.x,d.y,d.a);
     }
-    else if(e.detail.type == "re_add"){
+    else if(e.detail.type == "add_after_edge"){
         vertex_readd(d.id,d.name);
     }
 }

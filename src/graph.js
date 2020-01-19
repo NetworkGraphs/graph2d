@@ -1,7 +1,7 @@
 /**
  * 
  * sent events:
- * - graph_vertex (add) (move) for debug
+ * - graph_vertex (add_before_edge, add_after_edge) (move) for debug
  * - graph_edge (add)
  * 
  * received events:
@@ -13,27 +13,34 @@ import * as utils from "./utils.js";
 import config from "../config.js";
 
 let graph;
+let startup_time;
 
 function init(){
-    const start = Date.now();
+    startup_time = Date.now();
+	console.log(`graph> init()`);
 	['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
 		document.addEventListener(eventName, onDragEvents, false)
 	});
 	window.addEventListener('graph_edge', onGraphEdge, false);
-    console.log(`graph> init() in ${Date.now() - start} ms`);
+
+	fetch('./graphs/GraphSON_blueprints.json')
+	.then(response => response.json())
+	.then(json => import_graph(json))
+	
 }
 
 function import_graph(input){
 	graph = input.graph;
     graph.vertices.forEach(vertex =>{
-        utils.send('graph_vertex',{type:'add',id:vertex._id,name:vertex.name,w:100,h:50});
+        utils.send('graph_vertex',{type:'add_before_edge',id:vertex._id,name:vertex.name,w:100,h:50});
 	});
 	graph.edges.forEach(edge => {
         utils.send('graph_edge',{type:"add",id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
 	});
     graph.vertices.forEach(vertex =>{
-        utils.send('graph_vertex',{type:'re_add',id:vertex._id,name:vertex.name,w:100,h:50});
+        utils.send('graph_vertex',{type:'add_after_edge',id:vertex._id,name:vertex.name,w:100,h:50});
 	});
+	console.log(`graph> init() : import_graph() + graph_events() after ${Date.now() - startup_time} ms`);
 }
 
 function onGraphEdge(e){
@@ -89,8 +96,4 @@ function onDragEvents(event){
 	}
 }
 
-fetch('./graphs/GraphSON_blueprints.json')
-.then(response => response.json())
-.then(json => import_graph(json))
-
-export{init,run};
+export{init};
