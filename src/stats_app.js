@@ -18,6 +18,8 @@ function init(){
     console.log(`stats> init()`);
     is_stats = (localStorage.getItem("stats") === "true");
     set_view(is_stats);
+
+    window.addEventListener( 'stats', onStats, false );
 }
 
 function set_view(l_view){
@@ -50,6 +52,12 @@ function end(){
     }
     stats1.end();
     stats2.end();
+}
+
+function onStats(e){
+    if(typeof(e.detail.show) != "undefined"){
+        set_view(e.detail.show);
+    }
 }
 
 export{init, set_view, begin, end};

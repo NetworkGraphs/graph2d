@@ -12,7 +12,15 @@ document.body.appendChild(pyh_render_div);
 let main_view_div = document.createElement('div');
 document.body.appendChild(main_view_div);
 
-if(config.physics.renderer.enabled){
+let render_physics = localStorage.getItem("render_physics");
+if(render_physics === null){
+    render_physics = config.physics.renderer.enabled;
+}
+else{
+    render_physics = (render_physics === "true")?true:false;
+}
+console.log(`main> render physics = ${render_physics}`);
+if(render_physics){
     pyh_render_div.style.cssText = "height:50%";
     main_view_div.style.cssText = "height:50%";
 }
@@ -20,11 +28,11 @@ else{
     main_view_div.style.cssText = "height:100%";
 }
 
-graph.init();
+graph.init(render_physics);
 view.init(main_view_div);
-physics.init(main_view_div,pyh_render_div);
+physics.init(main_view_div,render_physics,pyh_render_div);
 stats.init();
-gui.init();
+gui.init(render_physics);
 
 function animate(){
 

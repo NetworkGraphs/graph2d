@@ -19,6 +19,7 @@ export default
         "enabled":true
     },
     "dat_gui":{
-        "enabled":true
+        "enabled":true,
+        "closed":true
     }
 }

@@ -27,9 +27,11 @@ let renderer;
 //lineto renderer objects
 let canvas,context;
 let physics_element;
+let render_physics;
 
-function init(phy_el,render_element){
+function init(phy_el,rend_phy,render_element){
     physics_element = phy_el;
+    render_physics = rend_phy;
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
     engine.world.gravity.y = config.physics.gravity;
@@ -44,36 +46,38 @@ function init(phy_el,render_element){
     window.addEventListener( 'graph_edge', onMatterEdge, false );
     window.addEventListener( 'engine', onEngine, false );
 
-    if(config.physics.renderer.type_lineto){
-        canvas = document.createElement('canvas');
-        context = canvas.getContext('2d');
-        canvas.width = physics_element.offsetWidth;
-        canvas.height = physics_element.offsetHeight;
-        render_element.appendChild(canvas);
-    }
-    if(config.physics.renderer.type_native){
-        renderer = Matter.Render.create({
-            element: render_element,
-            engine: engine,
-            options: {
-                width: render_element.offsetWidth,
-                height: render_element.offsetHeight,
-                showAngleIndicator: false,
-                showVelocity: true,
-                showBounds: true,
-                showBroadphase: true,
-                showAxes: true,
-                showIds: true,
-                showCollisions: true,
-                showSleeping:true,
-                showDebug:false,
-                wireframes: true,
-                constraintIterations:config.physics.simulation.constraintIterations
-                //constraintIterations default = 2
-                //positionIterations default = 6
-                //velocityIterations default = 4
-            }
-        });
+    if(render_physics){
+        if(config.physics.renderer.type_lineto){
+            canvas = document.createElement('canvas');
+            context = canvas.getContext('2d');
+            canvas.width = physics_element.offsetWidth;
+            canvas.height = physics_element.offsetHeight;
+            render_element.appendChild(canvas);
+        }
+        if(config.physics.renderer.type_native){
+            renderer = Matter.Render.create({
+                element: render_element,
+                engine: engine,
+                options: {
+                    width: render_element.offsetWidth,
+                    height: render_element.offsetHeight,
+                    showAngleIndicator: false,
+                    showVelocity: true,
+                    showBounds: true,
+                    showBroadphase: true,
+                    showAxes: true,
+                    showIds: true,
+                    showCollisions: true,
+                    showSleeping:true,
+                    showDebug:false,
+                    wireframes: true,
+                    constraintIterations:config.physics.simulation.constraintIterations
+                    //constraintIterations default = 2
+                    //positionIterations default = 6
+                    //velocityIterations default = 4
+                }
+            });
+        }
     }
 
     if(config.physics.move_objects_with_mouse){
@@ -180,11 +184,13 @@ function run(){
     if(any_vertex_to_move){
         utils.send('graph_edge',{type:'refresh_all'});
     }
-    if(config.physics.renderer.type_lineto){
-        render_lineto(engine,context);
-    }
-    if(config.physics.renderer.type_native){
-        Matter.Render.world(renderer);
+    if(render_physics){
+        if(config.physics.renderer.type_lineto){
+            render_lineto(engine,context);
+        }
+        if(config.physics.renderer.type_native){
+            Matter.Render.world(renderer);
+        }
     }
 }
 
@@ -212,14 +218,21 @@ function edge_add(params){
     let b_2 = engine.world.bodies.find(body => (body.id == params.dest));
     console.log(`phy> added edge from '${b_1.name}' to '${b_2.name}' with weight (${params.weight.toFixed(2)})`);
 
-    var constraint = Matter.Constraint.create({
-        bodyA: b_1,
-        bodyB: b_2,
-        length:100/params.weight,
-        stiffness: 0.01,
-        damping: 0.05
-    });
-    Matter.World.addConstraint(engine.world,constraint);
+    let length = 200;
+    if(params.weight != 0){//weight of 0 means no edge constraint
+        length = 100/params.weight;
+        if(length > 500){
+            length = 500;
+        }
+        var constraint = Matter.Constraint.create({
+            bodyA: b_1,
+            bodyB: b_2,
+            length:length,
+            stiffness: 0.01,
+            damping: 0.05
+        });
+        Matter.World.addConstraint(engine.world,constraint);
+    }
 }
 
 function onMatterEdge(e){
@@ -229,7 +242,9 @@ function onMatterEdge(e){
 }
 
 function onResize(e){
-    if(config.physics.renderer.type_native){
+    if(render_physics){
+        if(config.physics.renderer.type_native){
+        }
     }
 }
 
@@ -243,6 +258,11 @@ function onEngine(e){
     if(typeof(e.detail.frictionAir) != "undefined"){
         engine.world.bodies.forEach(body => {body.frictionAir = e.detail.frictionAir;});
         localStorage.setItem("frictionAir",e.detail.frictionAir);
+    }
+    if(typeof(e.detail.render_physics) != "undefined"){
+        console.log(`phy> render physics = ${e.detail.render_physics}`);
+        localStorage.setItem("render_physics",e.detail.render_physics);
+
     }
 }
 
