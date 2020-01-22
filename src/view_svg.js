@@ -2,6 +2,7 @@
  * received events:
  * - graph_vertex   (add, move)
  * - graph_edge     (add)
+ * - graph (clear)
  */
 
 let draw;
@@ -13,13 +14,14 @@ function init(element){
     draw = SVG().addTo(element).size('100%', '100%');
     window.addEventListener( 'graph_vertex', onViewVertex, false );
     window.addEventListener( 'graph_edge', onViewEdge, false );
+    window.addEventListener( 'graph', onGraph, false );
     console.log(`view_svg> init() in ${Date.now() - start} ms`);
 }
 
-function vertex_add(id,name){
-    console.log(`view_svg> added node '${name}'`);
+function vertex_add(id,label){
+    console.log(`view_svg> added node '${label}'`);
     let group = draw.group().id('g_'+id);
-    let text = draw.text(name).id('t_'+id);
+    let text = draw.text(label).id('t_'+id);
     let vert = draw
                 .rect(width,height)
                 .id('vert_'+id)
@@ -31,7 +33,7 @@ function vertex_add(id,name){
     group.center(0,0);
 }
 
-function vertex_readd(id, name){
+function vertex_readd(id, label){
     //let group = SVG('#g_'+id);
     var groupd_svg = document.getElementById('g_'+id);
     let parent = groupd_svg.parentNode;
@@ -90,16 +92,29 @@ function vertex_move(id,x,y,a){
     groupd_svg.setAttribute("transform", `translate(${x},${y}) rotate(${a})`);
 }
 
+function graph_clear(){
+    {
+        let input = document.getElementsByTagName("line");
+        let inputList = Array.prototype.slice.call(input);
+        inputList.forEach(el => {el.parentNode.removeChild(el)});
+    }
+    {
+        let input = document.getElementsByTagName("g");
+        let inputList = Array.prototype.slice.call(input);
+        inputList.forEach(el => {el.parentNode.removeChild(el)});
+    }
+}
+
 function onViewVertex(e){
     const d = e.detail;
     if(d.type == 'add_before_edge'){
-        vertex_add(d.id,d.name);
+        vertex_add(d.id,d.label);
     }
     else if(d.type == 'move'){
         vertex_move(d.id,d.x,d.y,d.a);
     }
     else if(e.detail.type == "add_after_edge"){
-        vertex_readd(d.id,d.name);
+        vertex_readd(d.id,d.label);
     }
 }
 
@@ -109,6 +124,12 @@ function onViewEdge(e){
     }
     else if(e.detail.type == "refresh"){
         edge_refresh(e.detail);
+    }
+}
+
+function onGraph(e){
+    if(typeof(e.detail.action) != "undefined"){
+        graph_clear();
     }
 }
 

@@ -6,6 +6,7 @@
  * 
  * received events:
  * - drag & drop ('dragenter', 'dragover', 'dragleave', 'drop')
+ * - graph_edge (refresh_all)
  * 
  */
 
@@ -29,16 +30,45 @@ function init(){
 	
 }
 
+function import_vertex(vertex){
+	let res = vertex;
+	res.label = (typeof(vertex.label) != "undefined")?vertex.label:vertex.name;
+	res.id = (typeof(vertex.id) != "undefined")?vertex.id:vertex._id;
+	return res;
+}
+
+function import_edge(edge){
+	let res = edge;
+	res.label = (typeof(edge.label) != "undefined")?edge.label:edge.name;
+	res.id = (typeof(edge.id) != "undefined")?edge.id:edge._id;
+	res.inV = (typeof(edge.inV) != "undefined")?edge.inV:edge._inV;
+	res.outV = (typeof(edge.outV) != "undefined")?edge.outV:edge._outV;
+	res.weight = (typeof(edge.weight) != "undefined")?edge.weight:1;
+	return res;
+}
+
 function import_graph(input){
-	graph = input.graph;
+	if(typeof(input.graph) != "undefined"){
+		graph = input.graph;
+	}
+	else{
+		if(typeof(input.vertices) != "undefined"){
+			graph.vertices = input.vertices;
+			graph.edges = input.edges;
+		}
+	}
+	utils.send('graph',{action:'clear'});
     graph.vertices.forEach(vertex =>{
-        utils.send('graph_vertex',{type:'add_before_edge',id:vertex._id,name:vertex.name,w:100,h:50});
+		vertex = import_vertex(vertex);
+        utils.send('graph_vertex',{type:'add_before_edge',id:vertex.id,label:vertex.label,w:100,h:50});
 	});
 	graph.edges.forEach(edge => {
-        utils.send('graph_edge',{type:"add",id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
+		edge = import_edge(edge);
+        utils.send('graph_edge',{type:"add",id:edge.id,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
 	});
     graph.vertices.forEach(vertex =>{
-        utils.send('graph_vertex',{type:'add_after_edge',id:vertex._id,name:vertex.name,w:100,h:50});
+		vertex = import_vertex(vertex);
+        utils.send('graph_vertex',{type:'add_after_edge',id:vertex.id,label:vertex.label,w:100,h:50});
 	});
 	console.log(`graph> init() : import_graph() + graph_events() after ${Date.now() - startup_time} ms`);
 }
@@ -46,7 +76,7 @@ function import_graph(input){
 function onGraphEdge(e){
 	if(e.detail.type == "refresh_all"){
 		graph.edges.forEach(edge => {
-			utils.send('graph_edge',{type:"refresh",id:edge._id,label:edge._label,src:edge._outV,dest:edge._inV,weight:edge.weight});
+			utils.send('graph_edge',{type:"refresh",id:edge.id,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
 		});
 		}
 }

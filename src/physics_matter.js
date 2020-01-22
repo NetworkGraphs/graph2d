@@ -12,6 +12,7 @@
  * - graph_vertex   (add_before_edge)
  * - graph_edge     (add)
  * - engine         (stiffness, damping)
+ * - graph (clear)
  *
  * engine -> world -> bodies
  *                 -> constraints
@@ -28,6 +29,7 @@ let renderer;
 let canvas,context;
 let physics_element;
 let render_physics;
+let mouseConstraint;
 
 function init(phy_el,rend_phy,render_element){
     physics_element = phy_el;
@@ -44,6 +46,7 @@ function init(phy_el,rend_phy,render_element){
     window.addEventListener( 'resize', onResize, false );
     window.addEventListener( 'graph_vertex', onMatterVertex, false );
     window.addEventListener( 'graph_edge', onMatterEdge, false );
+    window.addEventListener( 'graph', onGraph, false );
     window.addEventListener( 'engine', onEngine, false );
 
     if(render_physics){
@@ -82,7 +85,7 @@ function init(phy_el,rend_phy,render_element){
 
     if(config.physics.move_objects_with_mouse){
         let mouse = Matter.Mouse.create(physics_element);
-        let mouseConstraint = Matter.MouseConstraint.create(engine, {
+            mouseConstraint = Matter.MouseConstraint.create(engine, {
             mouse: mouse,
             constraint: {
                 angularStiffness: 0.1,
@@ -197,11 +200,11 @@ function run(){
 function vertex_add(params){
     let x = params.w/2 +  Math.round((physics_element.offsetWidth-params.w) * Math.random());
     let y = params.h/2 + Math.round((physics_element.offsetHeight-2*params.h) * Math.random());
-    let box = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,name:params.name ,isvertex:true});
+    let box = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,label:params.label ,isvertex:true});
 
     let frictionAir = localStorage.getItem("frictionAir");
     box.frictionAir = (frictionAir === null)?0.3:frictionAir;
-    //console.log(`phy> ${params.name} has frictionAir at ${frictionAir}`);
+    //console.log(`phy> ${params.label} has frictionAir at ${frictionAir}`);
     Matter.World.addBody(engine.world,box);
 }
 
@@ -216,13 +219,13 @@ function edge_add(params){
     //console.log(`phy> should add edge from ${params.src} to ${params.dest}`);
     let b_1 = engine.world.bodies.find(body => (body.id == params.src));
     let b_2 = engine.world.bodies.find(body => (body.id == params.dest));
-    console.log(`phy> added edge from '${b_1.name}' to '${b_2.name}' with weight (${params.weight.toFixed(2)})`);
+    console.log(`phy> added edge from '${b_1.label}' to '${b_2.label}' with weight (${params.weight.toFixed(2)})`);
 
-    let length = 200;
+    let length = 120;
     if(params.weight != 0){//weight of 0 means no edge constraint
-        length = 100/params.weight;
-        if(length > 500){
-            length = 500;
+        length = 120/params.weight;
+        if(length > 400){
+            length = 400;
         }
         var constraint = Matter.Constraint.create({
             bodyA: b_1,
@@ -232,6 +235,13 @@ function edge_add(params){
             damping: 0.05
         });
         Matter.World.addConstraint(engine.world,constraint);
+    }
+}
+
+function graph_clear(){
+    Matter.World.clear(engine.world,true);
+    if(config.physics.move_objects_with_mouse){
+        Matter.World.add(engine.world, mouseConstraint);
     }
 }
 
@@ -263,6 +273,12 @@ function onEngine(e){
         console.log(`phy> render physics = ${e.detail.render_physics}`);
         localStorage.setItem("render_physics",e.detail.render_physics);
 
+    }
+}
+
+function onGraph(e){
+    if(typeof(e.detail.action) != "undefined"){
+        graph_clear();
     }
 }
 

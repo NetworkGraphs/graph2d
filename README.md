@@ -1,7 +1,8 @@
 # graph2d
-2D based interactive network graph engine
+Physics based network graph engine. Used for interactive graph exploration and morphing.
 
-Note : Implementation not started, the project is in requirements collection phase
+## concept introduction
+A graph database can have thousands of vertices and edges. This engine is not intended for rendering a high number of vertices that would look like a cloud. It is rather targetting the user analysis of vertices containing readable labels. So even if a graph contains a high number of vertices, it is possible to start at an initial entry point, and start showing the required neighbors only. At each step, the user can pin the interesting vertex and continue the explration of the required path like a mind map opening process. It is also possible to decide of which vertex parameter is turned into a clusturing group, this way morphing the graph visibility to focus on the features the user is interested in.
 
 # Live demo
 
@@ -35,32 +36,65 @@ Existing Graph formats :
 ## Other dependencies
 * stats.js : 0.17.0
 * gui.js : as module
-# Development steps
-* drag and drop a file
+* [gui-paper.js](https://github.com/google/paper-gui)
 
+# Development
+## progress
+* drag and drop a file
+* multi windows svg and physics debug renderer
+* svg vertices and edges (basic)
+* configurable dat.gui with persistance (custom weak)
+* custom forces for horizontality adjustment of vertices
+
+## implementation plan
+* replace dat.gui with paper.gui
+* manage persistance in a single place and remove static config / gui conflict
+* change edge contraints to force field
+* enhance edges drawing that would be independent from the edge constraints
+* add hover effect on svg items
+* add vertices context menu for graph configuration
+* left click to fix, right click for config (touch, hold)
+* add edges labels
+
+## issues
+* dragging nodes selects the labels text, which results on a text drag and drop on the next step. To be avoided by disallowing text selection. Issue relates to the physics engine handling the mouse events and not stopping the propagation.
 
 # General Features
-Nodes/Edges can be referred to as elements
 * drag and drop to import graph files (standard .dot, custom .json)
-* hover effect to highlight neighbours
-* mouse drag nodes to move them
-* pin unpin nodes with clicks
-* right click for node-graph mapping config
+* right click on vertex/edge for config and on empty for graph config
 * map node properties to 
   * color
   * size
   * visibility
-* swap between node-neighborhood-relation and groups (a node disappears with all its edges and becomes a clusturing group)
-* group constraints
-  * nodes in groups attraction
-  * group shape forces (with fixed or free shape ratios)
-  * repulsion of non group members (optional for shapeless groups)
-  * groups can be hierarchical
-  * groups can intersect with nodes belonging to more than one group
-* neighbors atractions beyond groups to get groups closer together
-* neighbors can be a shapeles group
-* element properties shall not define visualisation properties (visibility, size, color, position, groups)
-* properties can map to nodes (hidden nodes)
+* properties can switch to nodes
+* switch property->node->group (a node disappears with all its edges and becomes a clusturing group)
+* vertex or edge properties shall not define visualisation properties (visibility, size, color, position, groups)
+
+## Vertices
+* hover effect to highlight neighbours
+* pin unpin vertices with clicks disables force influence
+* mouse drag vertices to move them
+* specific vertex config can bring neighbors closer or make them visible
+
+## Layout
+* vertices cluster themselves with neighborhood affinity
+* vertices initial layout uses forces not fixed constraints
+* neightbors attract with weight factor and non neighbors repulse
+* inter-groups neighbors attract to bring groups closer together
+
+## groups
+* groups interact with nodes using physical contraints
+* nodes in groups attraction
+* nodes out of groups repulsion
+* group shape forces (with fixed or free shape ratios)
+* repulsion of non group members (optional for shapeless groups)
+* groups can be hierarchical
+* groups can intersect with nodes belonging to more than one group
+
+## Edges
+* edges do not influence the initial layout
+* edges weight configurable with or without constraint and the constraint has configurable params
+
 
 ## Graph capabilities
 * Graph is static but visibility and properties mapping are dynamic
@@ -81,18 +115,13 @@ Nodes/Edges can be referred to as elements
 * properties can swap to a clustured number of nodes within a group depending on the type of the property
 
 ## Visualisation properties
-### Position
-* position and locality to neighbors including nodes out of properties, with or without groups
-* position is controlled by 
-  * attraction to other nodes
-  * repulsion out of other groups
-  * forces from groups shapes constraints
-* pinning of nodes disables force influence
 ### Size and visibility
-* Size and visibility can go together with an importance factor
+* size of vertices to be defined with screen resolution (mobile friendly)
+* size and visibility go together with an importance factor
+
 ### Labels
 * label has to be contained within the node size
-* label minification g othrough the short version (if available), the id or get hidden depending on node size restrictions
+* label minification go through the short version (if available), the id or get hidden depending on node size restrictions
 ### Style and color
 * node background color has to contrast the label color
 * node outline can have a thickness and glow
@@ -100,6 +129,7 @@ Nodes/Edges can be referred to as elements
 
 # References
 * [GraphSon_blueprint.json](graphs/GraphSON_blueprints.json) taken from [GraphSON Reader and Write](https://github.com/tinkerpop/blueprints/wiki/GraphSON-Reader-and-Writer-Library)
+* http://tinkerpop.apache.org/docs/3.4.4/dev/io/#graphson
 
 # Samples
 * [The eyes have it](https://codepen.io/shubniggurath/pen/RqYxoz)
