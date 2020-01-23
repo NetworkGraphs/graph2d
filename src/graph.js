@@ -23,11 +23,19 @@ function init(){
 		document.addEventListener(eventName, onDragEvents, false)
 	});
 	window.addEventListener('graph_edge', onGraphEdge, false);
+	window.addEventListener('graph_mouse', onGraphVertex, false);
 
 	fetch('./graphs/GraphSON_blueprints.json')
 	.then(response => response.json())
 	.then(json => import_graph(json))
 	
+}
+
+function onGraphVertex(e){
+	if(e.detail.type == 'hover'){
+		console.log(`graph> hover on ${e.detail.id} , ${e.detail.start}`);
+		utils.send('graph_vertex',{type:'highlight',id:e.detail.id,start:e.detail.start});
+	}
 }
 
 function import_vertex(vertex){

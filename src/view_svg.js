@@ -5,6 +5,8 @@
  * - graph (clear)
  */
 
+import * as utils from "./../src/utils.js";
+
 let draw;
 let width = 100;
 let height = 50;
@@ -21,16 +23,37 @@ function init(element){
 function vertex_add(id,label){
     console.log(`view_svg> added node '${label}'`);
     let group = draw.group().id('g_'+id);
-    let text = draw.text(label).id('t_'+id);
+    let text = draw.text(label).id('t_'+id).css('pointer-events', 'none');
     let vert = draw
                 .rect(width,height)
                 .id('vert_'+id)
-                .attr({ fill: '#00af06' });
+                .attr({ fill: '#00af06' })
+                .on([   'click', 'mouseover',
+                        'mouseleave','contextmenu',
+                        'touchstart','touchend'], onMouseVertex);
     vert.center(0,0);
     group.add(vert);
     text.center(0,0);
     group.add(text);
     group.center(0,0);
+}
+
+
+function onMouseVertex(e){
+    //console.log(`${e.type} on ${e.target.id}`);
+    if(['contextmenu', 'click'].includes(e.type)){
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if(['mouseover','touchstart'].includes(e.type)){
+        const id = e.target.id.substr(5,event.target.id.length);
+        utils.send('graph_mouse',{'type':'hover',id:id,start:true});
+    }
+    if(['mouseleave','touchend'].includes(e.type)){
+        const id = e.target.id.substr(5,event.target.id.length);
+        utils.send('graph_mouse',{'type':'hover',id:id,start:false});
+    }
+    return false;
 }
 
 function vertex_readd(id, label){
@@ -105,6 +128,18 @@ function graph_clear(){
     }
 }
 
+function vertex_highlight(id,start){
+    let vertex = SVG('#vert_'+id);
+    if(start){
+        vertex.css('fill','#b00f06');
+    }
+    else{
+        vertex.css('fill','#228855');
+    }
+    console.log(`svg> highlight , ${start}`);
+
+}
+
 function onViewVertex(e){
     const d = e.detail;
     if(d.type == 'add_before_edge'){
@@ -115,6 +150,9 @@ function onViewVertex(e){
     }
     else if(e.detail.type == "add_after_edge"){
         vertex_readd(d.id,d.label);
+    }
+    else if(e.detail.type == "highlight"){
+        vertex_highlight(d.id,d.start);
     }
 }
 

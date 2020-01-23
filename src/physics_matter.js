@@ -234,7 +234,7 @@ function edge_add(params){
             stiffness: 0.01,
             damping: 0.05
         });
-        Matter.World.addConstraint(engine.world,constraint);
+        //Matter.World.addConstraint(engine.world,constraint);
     }
 }
 
