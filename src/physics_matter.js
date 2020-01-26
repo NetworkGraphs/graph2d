@@ -9,7 +9,7 @@
  *
  * received events:
  * - resize
- * - graph_vertex   (add_before_edge)
+ * - graph_vertex   (add_before_edge, hover)
  * - graph_edge     (add)
  * - engine         (stiffness, damping)
  * - graph (clear)
@@ -24,6 +24,7 @@ import * as utils from "./../src/utils.js";
 import config from "./../config.js";
 
 let engine;
+let bm;//bodies map
 let renderer;
 //lineto renderer objects
 let canvas,context;
@@ -129,8 +130,36 @@ function keep_vertices_horizontal(){
     });
 }
 
+function bring_neighbors_close_by(){
+    engine.world.bodies.forEach(body => {
+        if(body.is_force_neighbors && !body.is_center){
+            const center_body = bm[body.has_center];
+            const diff = Matter.Vector.sub(center_body.position, body.position);
+            const direction = Matter.Vector.normalise(diff);
+            const distance = Matter.Vector.magnitude(diff);
+            if(distance < 150){
+                body.force = Matter.Vector.mult(direction,-0.02);
+            }
+            if(distance > 250){
+                body.force = Matter.Vector.mult(direction,0.02);
+            }
+        }
+    });
+}
+
 function apply_custom_forces(){
     keep_vertices_horizontal();
+    bring_neighbors_close_by();
+}
+
+function vertex_hover(d){
+    const body = bm[d.id];
+    //console.log(`phy> updating ${body.label}`);
+    body.is_force_neighbors = d.start;
+    body.is_center = d.center;
+    if(!d.center){
+        body.has_center = d.cid;
+    }
 }
 
 let last_run = 0;
@@ -200,18 +229,27 @@ function run(){
 function vertex_add(params){
     let x = params.w/2 +  Math.round((physics_element.offsetWidth-params.w) * Math.random());
     let y = params.h/2 + Math.round((physics_element.offsetHeight-2*params.h) * Math.random());
-    let box = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,label:params.label ,isvertex:true});
+    let body = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,label:params.label ,isvertex:true});
 
     let frictionAir = localStorage.getItem("frictionAir");
-    box.frictionAir = (frictionAir === null)?0.3:frictionAir;
+    body.frictionAir = (frictionAir === null)?0.3:frictionAir;
+    body.is_force_neighbors = false;
+    body.is_center = false;
     //console.log(`phy> ${params.label} has frictionAir at ${frictionAir}`);
-    Matter.World.addBody(engine.world,box);
+    Matter.World.addBody(engine.world,body);
+    if(typeof(bm) == "undefined"){
+        bm = new Map();
+    }
+    bm[params.id] = body;
 }
 
 function onMatterVertex(e){
     const d = e.detail;
     if(d.type == 'add_before_edge'){
         vertex_add(d);
+    }
+    if(d.type == 'hover'){
+        vertex_hover(d);
     }
 }
 
@@ -243,6 +281,7 @@ function graph_clear(){
     if(config.physics.move_objects_with_mouse){
         Matter.World.add(engine.world, mouseConstraint);
     }
+    bm = new Map();
 }
 
 function onMatterEdge(e){

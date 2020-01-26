@@ -17,7 +17,7 @@ function init(render_physics){
         damping:0.05,
         frictionAir:0.3
     };
-	var gui = new GUI( { width: 300 } );
+    var gui = new GUI( { width: 300 } );
 	gui.add( params, 'show physics').listen().onChange(  value => {utils.send("engine",{render_physics:value})} );
 	gui.add( params, 'show stats').listen().onChange(  value => {
                                                                     utils.send("stats",{show:value});

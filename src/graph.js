@@ -1,19 +1,20 @@
 /**
  * 
  * sent events:
- * - graph_vertex (add_before_edge, add_after_edge) (move) for debug
+ * - graph_vertex (add_before_edge, add_after_edge, hover) (move) for debug
  * - graph_edge (add)
  * 
  * received events:
  * - drag & drop ('dragenter', 'dragover', 'dragleave', 'drop')
  * - graph_edge (refresh_all)
+ * - graph_mouse (hover)
  * 
  */
 
 import * as utils from "./utils.js";
 import config from "../config.js";
 
-let graph;
+let graph,mg;
 let startup_time;
 
 function init(){
@@ -33,8 +34,14 @@ function init(){
 
 function onGraphVertex(e){
 	if(e.detail.type == 'hover'){
-		console.log(`graph> hover on ${e.detail.id} , ${e.detail.start}`);
-		utils.send('graph_vertex',{type:'highlight',id:e.detail.id,start:e.detail.start});
+		if(e.detail.start){
+			console.log(`graph> hover on ${mg.vertices[e.detail.id].label}`);
+		}
+		utils.send('graph_vertex',{type:'hover',id:e.detail.id,start:e.detail.start,center:true});
+		for(let id of mg.vertices[e.detail.id].neighbors){
+			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
+			utils.send('graph_vertex',{type:'hover',id:id,start:e.detail.start,center:false,cid:e.detail.id});
+		}
 	}
 }
 
@@ -52,6 +59,34 @@ function import_edge(edge){
 	res.inV = (typeof(edge.inV) != "undefined")?edge.inV:edge._inV;
 	res.outV = (typeof(edge.outV) != "undefined")?edge.outV:edge._outV;
 	res.weight = (typeof(edge.weight) != "undefined")?edge.weight:1;
+	return res;
+}
+
+function import_to_map_graph(graph){
+	let res = {};
+	res.vertices = new Map();
+	graph.vertices.forEach(vertex => {
+		res.vertices[vertex.id] = vertex;
+	});
+	res.edges = {};
+	graph.edges.forEach(edge => {
+		res.edges[edge.id] = edge;
+	});
+	for(let [vid,v] of Object.entries(res.vertices)){
+		v.neighbors = new Set();
+		v.in_neighbors = new Set();
+		v.out_neighbors = new Set();
+		for(let [eid,e] of Object.entries(res.edges)){
+				if(e.inV == vid){
+					v.in_neighbors.add(e.outV);
+					v.neighbors.add(e.outV);
+				}
+				if(e.outV == vid){
+					v.out_neighbors.add(e.inV);
+					v.neighbors.add(e.inV);
+				}
+			}
+	}
 	return res;
 }
 
@@ -78,6 +113,7 @@ function import_graph(input){
 		vertex = import_vertex(vertex);
         utils.send('graph_vertex',{type:'add_after_edge',id:vertex.id,label:vertex.label,w:100,h:50});
 	});
+	mg = import_to_map_graph(graph);
 	console.log(`graph> init() : import_graph() + graph_events() after ${Date.now() - startup_time} ms`);
 }
 

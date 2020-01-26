@@ -21,5 +21,13 @@ export default
     "dat_gui":{
         "enabled":true,
         "closed":true
+    },
+    "view":{
+        "colors":{
+            "vertices":{
+                "default":"#228855",
+                "highlight":"#20f046"
+            }
+        }
     }
 }

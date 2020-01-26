@@ -1,11 +1,12 @@
 /**
  * received events:
- * - graph_vertex   (add, move)
+ * - graph_vertex   (add, move, hover)
  * - graph_edge     (add)
  * - graph (clear)
  */
 
 import * as utils from "./../src/utils.js";
+import config from "./../config.js";
 
 let draw;
 let width = 100;
@@ -27,7 +28,7 @@ function vertex_add(id,label){
     let vert = draw
                 .rect(width,height)
                 .id('vert_'+id)
-                .attr({ fill: '#00af06' })
+                .attr({ fill: config.view.colors.vertices.default })
                 .on([   'click', 'mouseover',
                         'mouseleave','contextmenu',
                         'touchstart','touchend'], onMouseVertex);
@@ -131,12 +132,12 @@ function graph_clear(){
 function vertex_highlight(id,start){
     let vertex = SVG('#vert_'+id);
     if(start){
-        vertex.css('fill','#b00f06');
+        vertex.css('fill',config.view.colors.vertices.highlight);
     }
     else{
-        vertex.css('fill','#228855');
+        vertex.css('fill',config.view.colors.vertices.default);
     }
-    console.log(`svg> highlight , ${start}`);
+    //console.log(`svg> highlight , ${start}`);
 
 }
 
@@ -151,7 +152,7 @@ function onViewVertex(e){
     else if(e.detail.type == "add_after_edge"){
         vertex_readd(d.id,d.label);
     }
-    else if(e.detail.type == "highlight"){
+    else if(e.detail.type == "hover"){
         vertex_highlight(d.id,d.start);
     }
 }
