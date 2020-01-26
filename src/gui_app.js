@@ -2,45 +2,78 @@ import { GUI } 				from './../jsm/dat.gui.module.js';
 import config from '../config.js';
 import * as utils from "./../src/utils.js";
 
+let gui;
 let params;
 
-function init(render_physics){
-    if(!config.dat_gui.enabled)    {
+function setup_gui(params){
+    let gui = new GUI( { width:config["user.gui"].width, load:params} );
+	gui.add( params, 'show physics').listen().onChange(              value => {utils.send("params",{'show physics':value})});
+	gui.add( params, 'show stats').listen().onChange(                value => {utils.send("params",{'show stats':value});} );
+	gui.add( params, 'stiffness', 0.0001, 1.0 ).onChange(            value => {utils.send("params",{stiffness:value})} );
+	gui.add( params, 'damping', 0.001, 1.0 ).onChange(               value => {utils.send("params",{damping:value})} );
+    gui.add( params, 'frictionAir', 0.0001, 1.0 ).listen().onChange( value => {utils.send("params",{frictionAir:value})} );
+    gui.addColor( params, 'VertexColor').onFinishChange(             value => {utils.send("params",{VertexColor:value})});
+    gui.addColor( params, 'VertexHighlight');
+    gui.add( params, 'save');
+    gui.add( params, 'reset');
+    return gui;
+}
+
+function init_params(reset=false){
+    let params;
+    if(reset){
+        params = config["user.gui"];
+    }
+    else{
+        let params_text = localStorage.getItem("params");
+        if(params_text === null){
+            params = config["user.gui"];
+        }
+        else{
+            params = JSON.parse(params_text);
+        }
+    }
+    params.save = ()=>{localStorage.setItem("params",JSON.stringify(params))};
+    params.reset = ()=>{params = init_params(true);gui.destroy();gui = setup_gui(params)};
+    return params;
+}
+
+function init(){
+
+    params = init_params(!config.system.dat_gui.enabled);
+
+    if(!config.system.dat_gui.enabled)    {
         return
     }
 
+    gui = setup_gui(params);
 
-	params = {
-        "show physics":true,
-        "show stats":true,
-        stiffness:	0.01,
-        damping:0.05,
-        frictionAir:0.3
-    };
-    var gui = new GUI( { width: 300 } );
-	gui.add( params, 'show physics').listen().onChange(  value => {utils.send("engine",{render_physics:value})} );
-	gui.add( params, 'show stats').listen().onChange(  value => {
-                                                                    utils.send("stats",{show:value});
-                                                                    localStorage.setItem("show_stats",value);
-                                                                } );
-	gui.add( params, 'stiffness', 0.0001, 1.0 ).onChange(  value => {utils.send("engine",{stiffness:value})} );
-	gui.add( params, 'damping', 0.001, 1.0 ).onChange(  value => {utils.send("engine",{damping:value})} );
-    gui.add( params, 'frictionAir', 0.0001, 1.0 ).onChange(  value => {utils.send("engine",{frictionAir:value})} ).listen();
-
-    let frictionAir = localStorage.getItem("frictionAir");
-    frictionAir = parseFloat(frictionAir).toFixed(4);
-    params.frictionAir = (frictionAir === null)?0.3:frictionAir;
-
-    params["show physics"] = render_physics;
-
-    let show_stats = localStorage.getItem("show_stats");
-    params["show stats"] = (show_stats === "true")?true:false;
-
-    //GUI.toggleHide();//TODO with keypress on pc and another way on touch devices
-    if(config.dat_gui.closed){
+    if(config.system.dat_gui.closed){
         gui.close();
     }
 
 }
 
-export{init};
+export{init,params};
+
+
+let exp = {
+    "show physics": true,
+    "show stats": true,
+    "stiffness": 0.01,
+    "damping": 0.05,
+    "frictionAir": 0.3,
+    "closed": false,
+    "remembered": {
+      "undefined": {
+        "0": {
+          "show physics": true,
+          "show stats": true,
+          "stiffness": 0.01,
+          "damping": 0.05,
+          "frictionAir": 0.3
+        }
+      }
+    },
+    "folders": {}
+  };

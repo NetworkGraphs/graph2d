@@ -3,7 +3,7 @@ import config from "./../config.js";
 let stats1,stats2;
 let is_stats = false;
 
-function init(){
+function init(is_show){
     if(!config.stats.enabled){
         return
     }
@@ -16,10 +16,9 @@ function init(){
 	document.body.appendChild(stats2.domElement);
 
     console.log(`stats> init()`);
-    is_stats = (localStorage.getItem("stats") === "true");
-    set_view(is_stats);
+    set_view(is_show);
 
-    window.addEventListener( 'stats', onStats, false );
+    window.addEventListener( 'params', onStats, false );
 }
 
 function set_view(l_view){
@@ -35,7 +34,6 @@ function set_view(l_view){
 		stats1.showPanel();
 		stats2.showPanel();
     }
-    localStorage.setItem("stats",is_stats);
 }
 
 function begin(){
@@ -55,8 +53,9 @@ function end(){
 }
 
 function onStats(e){
-    if(typeof(e.detail.show) != "undefined"){
-        set_view(e.detail.show);
+    let show = e.detail["show stats"];
+    if(typeof(show) != "undefined"){
+        set_view(show);
     }
 }
 

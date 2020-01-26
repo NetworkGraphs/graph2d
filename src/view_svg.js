@@ -6,7 +6,7 @@
  */
 
 import * as utils from "./../src/utils.js";
-import config from "./../config.js";
+import * as dat from "./gui_app.js"
 
 let draw;
 let width = 100;
@@ -28,7 +28,7 @@ function vertex_add(id,label){
     let vert = draw
                 .rect(width,height)
                 .id('vert_'+id)
-                .attr({ fill: config.view.colors.vertices.default })
+                .attr({ fill: dat.params.VertexColor })
                 .on([   'click', 'mouseover',
                         'mouseleave','contextmenu',
                         'touchstart','touchend'], onMouseVertex);
@@ -132,10 +132,10 @@ function graph_clear(){
 function vertex_highlight(id,start){
     let vertex = SVG('#vert_'+id);
     if(start){
-        vertex.css('fill',config.view.colors.vertices.highlight);
+        vertex.css('fill',dat.params.VertexHighlight);
     }
     else{
-        vertex.css('fill',config.view.colors.vertices.default);
+        vertex.css('fill',dat.params.VertexColor);
     }
     //console.log(`svg> highlight , ${start}`);
 

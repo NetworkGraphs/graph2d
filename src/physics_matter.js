@@ -43,7 +43,9 @@ function init(phy_el,rend_phy,render_element){
     //console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
     let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
     let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
-    Matter.World.add(engine.world,[ground,ceiling]);
+    let wall_left = Matter.Bodies.rectangle(0, 0, 20, physics_element.offsetHeight*2, { id:"obst2" ,label:"wall_left",isStatic: true ,isvertex:false});
+    //let wall_right = Matter.Bodies.rectangle(physics_element.offsetWidth-20, 0, physics_element.offsetHeight*2-20, physics_element.offsetHeight*2, { id:"obst3" ,label:"wall_right",isStatic: true ,isvertex:false});
+    Matter.World.add(engine.world,[ground,ceiling,wall_left]);
 
     window.addEventListener( 'resize', onResize, false );
     window.addEventListener( 'graph_vertex', onMatterVertex, false );
