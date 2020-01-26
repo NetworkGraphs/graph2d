@@ -25,6 +25,7 @@ import config from "./../config.js";
 
 let engine;
 let bm;//bodies map
+let hover = {active:false, center:0};
 let renderer;
 //lineto renderer objects
 let canvas,context;
@@ -130,18 +131,39 @@ function keep_vertices_horizontal(){
     });
 }
 
-function bring_neighbors_close_by(){
+function center_bring_neighbors(){
+    if(!hover.active){
+        return;
+    }
     engine.world.bodies.forEach(body => {
         if(body.is_force_neighbors && !body.is_center){
             const center_body = bm[body.has_center];
             const diff = Matter.Vector.sub(center_body.position, body.position);
-            const direction = Matter.Vector.normalise(diff);
             const distance = Matter.Vector.magnitude(diff);
             if(distance < 150){
-                body.force = Matter.Vector.mult(direction,-0.02);
+                const direction = Matter.Vector.normalise(diff);
+                body.force = Matter.Vector.mult(direction,-0.05);
             }
             if(distance > 250){
-                body.force = Matter.Vector.mult(direction,0.02);
+                const direction = Matter.Vector.normalise(diff);
+                body.force = Matter.Vector.mult(direction,0.05);
+            }
+        }
+    });
+}
+
+function center_push_non_neighbors(){
+    if(!hover.active){
+        return;
+    }
+    engine.world.bodies.forEach(body => {
+        if(!body.is_force_neighbors){
+            const center_body = bm[hover.center];
+            const diff = Matter.Vector.sub(center_body.position, body.position);
+            const distance = Matter.Vector.magnitude(diff);
+            if(distance < 300){
+                const direction = Matter.Vector.normalise(diff);
+                body.force = Matter.Vector.mult(direction,-0.02);
             }
         }
     });
@@ -149,16 +171,19 @@ function bring_neighbors_close_by(){
 
 function apply_custom_forces(){
     keep_vertices_horizontal();
-    bring_neighbors_close_by();
+    center_bring_neighbors();
+    center_push_non_neighbors();
 }
 
 function vertex_hover(d){
     const body = bm[d.id];
     //console.log(`phy> updating ${body.label}`);
     body.is_force_neighbors = d.start;
+    hover.active = d.start;
     body.is_center = d.center;
     if(!d.center){
         body.has_center = d.cid;
+        hover.center = d.cid;
     }
 }
 
