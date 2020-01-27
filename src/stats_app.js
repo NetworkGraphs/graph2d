@@ -4,7 +4,8 @@ let stats1,stats2;
 let is_stats = false;
 
 function init(is_show){
-    if(!config.stats.enabled){
+    window.addEventListener( 'params', onStats, false );
+    if(!is_show){
         return
     }
 	stats1 = new Stats();
@@ -18,13 +19,9 @@ function init(is_show){
     console.log(`stats> init()`);
     set_view(is_show);
 
-    window.addEventListener( 'params', onStats, false );
 }
 
 function set_view(l_view){
-    if(!config.stats.enabled){
-        return
-    }
 	is_stats = l_view;
 	if(is_stats){
 		stats1.showPanel(0); // Panel 0 = fps
@@ -54,7 +51,11 @@ function end(){
 
 function onStats(e){
     let show = e.detail["show stats"];
+    console.log(show);
     if(typeof(show) != "undefined"){
+        if(typeof(stats1) == "undefined"){
+            init(show);
+        }
         set_view(show);
     }
 }

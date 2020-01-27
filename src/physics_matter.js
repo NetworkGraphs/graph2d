@@ -22,6 +22,7 @@
 
 import * as utils from "./../src/utils.js";
 import config from "./../config.js";
+import * as dat from "./gui_app.js"
 
 let engine;
 let bm;//bodies map
@@ -38,7 +39,7 @@ function init(phy_el,rend_phy,render_element){
     render_physics = rend_phy;
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
-    engine.world.gravity.y = config.physics.gravity;
+    engine.world.gravity.y = config.system.physics.gravity;
     
     //console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
     let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
@@ -54,14 +55,14 @@ function init(phy_el,rend_phy,render_element){
     window.addEventListener( 'engine', onEngine, false );
 
     if(render_physics){
-        if(config.physics.renderer.type_lineto){
+        if(config.system.physics.renderer.type_lineto){
             canvas = document.createElement('canvas');
             context = canvas.getContext('2d');
             canvas.width = physics_element.offsetWidth;
             canvas.height = physics_element.offsetHeight;
             render_element.appendChild(canvas);
         }
-        if(config.physics.renderer.type_native){
+        if(dat.params["show physics"]){
             renderer = Matter.Render.create({
                 element: render_element,
                 engine: engine,
@@ -78,7 +79,7 @@ function init(phy_el,rend_phy,render_element){
                     showSleeping:true,
                     showDebug:false,
                     wireframes: true,
-                    constraintIterations:config.physics.simulation.constraintIterations
+                    constraintIterations:config.system.physics.simulation.constraintIterations
                     //constraintIterations default = 2
                     //positionIterations default = 6
                     //velocityIterations default = 4
@@ -87,7 +88,7 @@ function init(phy_el,rend_phy,render_element){
         }
     }
 
-    if(config.physics.move_objects_with_mouse){
+    if(config.system.physics.move_objects_with_mouse){
         let mouse = Matter.Mouse.create(physics_element);
             mouseConstraint = Matter.MouseConstraint.create(engine, {
             mouse: mouse,
@@ -244,10 +245,10 @@ function run(){
         utils.send('graph_edge',{type:'refresh_all'});
     }
     if(render_physics){
-        if(config.physics.renderer.type_lineto){
+        if(config.system.physics.renderer.type_lineto){
             render_lineto(engine,context);
         }
-        if(config.physics.renderer.type_native){
+        if(dat.params["show physics"]){
             Matter.Render.world(renderer);
         }
     }
@@ -305,7 +306,7 @@ function edge_add(params){
 
 function graph_clear(){
     Matter.World.clear(engine.world,true);
-    if(config.physics.move_objects_with_mouse){
+    if(config.system.physics.move_objects_with_mouse){
         Matter.World.add(engine.world, mouseConstraint);
     }
     bm = new Map();
@@ -318,10 +319,6 @@ function onMatterEdge(e){
 }
 
 function onResize(e){
-    if(render_physics){
-        if(config.physics.renderer.type_native){
-        }
-    }
 }
 
 function onEngine(e){

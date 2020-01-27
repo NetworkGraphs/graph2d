@@ -93,12 +93,24 @@ function refresh_line(params){
 function add_polyline(params){
     let start = SVG('#g_'+params.src);
     let stop = SVG('#g_'+params.dest);
-    var line = draw.line(0, 100, 100, 0).id('l_'+params.id).move(20, 20);
-    line.stroke({ color: '#ff0f06', width: 10, linecap: 'round' });
+    let path = draw.path('M0 100 L100 0').id('l_'+params.id).move(20, 20);
+    path.stroke({ color: '#ff0f06', width: 10, linecap: 'round' });
 }
 
 function refresh_polyline(params){
-    
+    let id = 'l_'+params.id;
+    let path = SVG('#'+id);
+    if(path != null){
+        let start = SVG('#g_'+params.src);
+        let stop = SVG('#g_'+params.dest);
+        //console.log(`svg> edge move : ${params.src} to ${params.dest} : ${start.transform('e')} -> ${stop.transform('f')}`);
+        //console.log(`svg> rot : ${start.transform('rotate')} - Tx : ${start.transform('translateX')}`);
+        let x1 = start.transform('translateX');
+        let y1 = start.transform('translateY');
+        let x2 = stop.transform('translateX');
+        let y2 = stop.transform('translateY');
+        path.plot(`M${x1} ${y1} L${x2} ${y2}`);
+    }
 }
 
 function edge_refresh(params){
