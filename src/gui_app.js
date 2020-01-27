@@ -9,6 +9,7 @@ function setup_gui(params){
     let gui = new GUI( { width:config["user.gui"].width, load:params} );
 	gui.add( params, 'show physics').listen().onChange(              value => {utils.send("params",{'show physics':value})});
 	gui.add( params, 'show stats').listen().onChange(                value => {utils.send("params",{'show stats':value});} );
+	gui.add( params, 'edges',['line','polyline']).onChange(          value => {utils.send("params",{'edges':value});} );
 	gui.add( params, 'stiffness', 0.0001, 1.0 ).onChange(            value => {utils.send("params",{stiffness:value})} );
 	gui.add( params, 'damping', 0.001, 1.0 ).onChange(               value => {utils.send("params",{damping:value})} );
     gui.add( params, 'frictionAir', 0.0001, 1.0 ).listen().onChange( value => {utils.send("params",{frictionAir:value})} );

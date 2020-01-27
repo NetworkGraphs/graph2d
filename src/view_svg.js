@@ -74,7 +74,7 @@ function add_line(params){
     line.stroke({ color: '#f06', width: 10, linecap: 'round' });
 }
 
-function edge_refresh(params){
+function refresh_line(params){
     let id = 'l_'+params.id;
     let line = SVG('#'+id);
     if(line != null){
@@ -90,9 +90,34 @@ function edge_refresh(params){
     }
 }
 
+function add_polyline(params){
+    let start = SVG('#g_'+params.src);
+    let stop = SVG('#g_'+params.dest);
+    var line = draw.line(0, 100, 100, 0).id('l_'+params.id).move(20, 20);
+    line.stroke({ color: '#ff0f06', width: 10, linecap: 'round' });
+}
+
+function refresh_polyline(params){
+    
+}
+
+function edge_refresh(params){
+    if(dat.params.edges == "line"){
+        refresh_line(params);
+    }
+    else if(dat.params.edges == "polyline"){
+        refresh_polyline(params);
+    }
+}
+
 
 function edge_add(params){
-    add_line(params);
+    if(dat.params.edges == "line"){
+        add_line(params);
+    }
+    else if(dat.params.edges == "polyline"){
+        add_polyline(params)
+    }
 }
 
 function vertex_move_fail(id,x,y,a){

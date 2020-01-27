@@ -35,6 +35,7 @@ export default
         "width":350,
         "show physics":true,
         "show stats":true,
+        "edges":"line",
         "stiffness":0.01,
         "damping":0.05,
         "frictionAir":0.3,
