@@ -8,6 +8,7 @@
 import * as utils from "./../src/utils.js";
 import * as dat from "./gui_app.js"
 import * as filter from "./filters.js"
+import config from "../config.js";
 
 
 let draw;
@@ -81,7 +82,8 @@ function add_line(params){
     //let line = draw.line(0, 0, 100, 150).stroke({ width: 1 })
     var line = draw.line(0, 100, 100, 0);//.id('l_'+params.id).move(20, 20);
     line.attr({id:'l_'+params.id});
-    line.stroke({ color: '#f06', width: 10, linecap: 'round' });
+    let cl = config.system.view.colors.edges;
+    line.stroke({ color: cl.default, width: 10, linecap: 'round' });
 }
 
 function refresh_line(params){
@@ -105,9 +107,10 @@ function add_polyline(params){
     //let stop = SVG('#g_'+params.dest);
     let path = draw.path('M0 100 L100 10');//.id('l_'+params.id).move(20, 20);
     path.attr({id:'l_'+params.id})
-    path.stroke({ color: '#ff0f06', width: 10, linecap: 'round' });
+    let cl = config.system.view.colors.edges;
+    path.stroke({ color: cl.default, width: 10, linecap: 'round' });
     console.log(`poly> l_${params.id}`);
-    filter.disp_turb('l_'+params.id);
+    //filter.disp_turb('l_'+params.id);
 }
 
 function refresh_polyline(params){
@@ -130,7 +133,7 @@ function refresh_polyline(params){
         //let p2 = Vector.create(x2,y2);
         //let diff = Vector.sub(p2,p1);
 
-        filter.disp_turb('l_'+params.id);
+        //filter.disp_turb('l_'+params.id);
     }
 }
 
@@ -150,6 +153,18 @@ function edge_add(params){
     }
     else if(dat.params.edges == "polyline"){
         add_polyline(params)
+    }
+}
+
+function edge_highlight(params){
+    let id = 'l_'+params.id;
+    if(params.start){
+        filter.disp_turb(id);
+        document.getElementById(id).setAttribute("stroke",config.system.view.colors.edges.highlight);
+    }
+    else{
+        filter.clear(id);
+        document.getElementById(id).setAttribute("stroke",config.system.view.colors.edges.default);
     }
 }
 
@@ -237,6 +252,9 @@ function onViewEdge(e){
     }
     else if(e.detail.type == "refresh"){
         edge_refresh(e.detail);
+    }
+    else if(e.detail.type == "hover"){
+        edge_highlight(e.detail);
     }
 }
 

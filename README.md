@@ -43,18 +43,17 @@ Existing Graph formats :
 * drag and drop a file
 * multi windows svg and physics debug renderer
 * svg vertices and edges (basic)
-* configurable dat.gui with persistance (custom weak)
+* configurable dat.gui with persistance
 * custom forces for horizontality adjustment of vertices
+* custom forces for neighbors field attraction
+* hover highlighting neighbors
+* svg filters for drop shadow, light and displacement
 
 ## implementation plan
-* replace dat.gui with paper.gui
-* manage persistance in a single place and remove static config / gui conflict
-* change edge contraints to force field
-* enhance edges drawing that would be independent from the edge constraints
-* add hover effect on svg items
 * add vertices context menu for graph configuration
 * left click to fix, right click for config (touch, hold)
 * add edges labels
+* create display for groups
 
 ## issues
 * dragging nodes selects the labels text, which results on a text drag and drop on the next step. To be avoided by disallowing text selection. Issue relates to the physics engine handling the mouse events and not stopping the propagation.

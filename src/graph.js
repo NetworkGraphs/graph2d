@@ -2,7 +2,7 @@
  * 
  * sent events:
  * - graph_vertex (add_before_edge, add_after_edge, hover) (move) for debug
- * - graph_edge (add)
+ * - graph_edge (add, hover)
  * 
  * received events:
  * - drag & drop ('dragenter', 'dragover', 'dragleave', 'drop')
@@ -91,6 +91,10 @@ function onGraphVertex(e){
 			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
 			utils.send('graph_vertex',{type:'hover',id:id,start:e.detail.start,center:false,cid:e.detail.id});
 		}
+		for(let id of mg.vertices[e.detail.id].edges){
+			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
+			utils.send('graph_edge',{type:'hover',id:id,start:e.detail.start});
+		}
 	}
 }
 
@@ -125,14 +129,17 @@ function import_to_map_graph(graph){
 		v.neighbors = new Set();
 		v.in_neighbors = new Set();
 		v.out_neighbors = new Set();
+		v.edges = new Set();
 		for(let [eid,e] of Object.entries(res.edges)){
 				if(e.inV == vid){
 					v.in_neighbors.add(e.outV);
 					v.neighbors.add(e.outV);
+					v.edges.add(eid);
 				}
 				if(e.outV == vid){
 					v.out_neighbors.add(e.inV);
 					v.neighbors.add(e.inV);
+					v.edges.add(eid);
 				}
 			}
 	}

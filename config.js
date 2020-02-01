@@ -62,6 +62,10 @@ export default
                 "vertices":{
                     "default":"#228855",
                     "highlight":"#20f046"
+                },
+                "edges":{
+                    "default":"#998855",
+                    "highlight":"#aaf046"
                 }
             }
         }

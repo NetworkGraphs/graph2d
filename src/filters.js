@@ -29,8 +29,8 @@ function get_light_composite(){
     composite.setAttribute("in", "SourceGraphic");
     composite.setAttribute("in2", "light");
     composite.setAttribute("operator", "arithmetic");
-    composite.setAttribute("k1", 0.5);
-    composite.setAttribute("k2", 0.5);
+    composite.setAttribute("k1", 0.8);
+    composite.setAttribute("k2", 0.2);
     composite.setAttribute("k3", 0);
     composite.setAttribute("k4", 0);
     return composite;
@@ -64,10 +64,10 @@ function get_turb(){
 function get_disp_turb_filter(){
     let filter = document.createElementNS(xmlns,"filter");
     filter.setAttribute("id", "disp_turb");
-    filter.setAttribute("x", "-20%");
-    filter.setAttribute("y", "-20%");
-    filter.setAttribute("width", "150%");
-    filter.setAttribute("height", "150%");
+    filter.setAttribute("x", "-50%");
+    filter.setAttribute("y", "-50%");
+    filter.setAttribute("width", "200%");
+    filter.setAttribute("height", "200%");
 
     filter.appendChild(get_turb());
     filter.appendChild(get_disp(5));
