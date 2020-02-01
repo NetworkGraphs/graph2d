@@ -19,7 +19,7 @@ function init(element){
     const start = Date.now();
     draw = SVG().addTo(element).size('100%', '100%');
     draw.attr({id:"svg_graph"});
-    filter.add_filters("svg_graph");
+    filter.create("svg_graph");
     window.addEventListener( 'graph_vertex', onViewVertex, false );
     window.addEventListener( 'graph_edge', onViewEdge, false );
     window.addEventListener( 'graph', onGraph, false );
@@ -40,9 +40,7 @@ function vertex_add(d){
                         'touchstart','touchend'], onMouseVertex);
     vert.center(0,0);
     vert.radius(10);
-    filter.shadow('vert_'+d.id);
-    //filter.blur('vert_'+d.id);
-    //filter.clear('vert_'+d.id);
+    filter.shadow_light('vert_'+d.id);
     group.add(vert);
     text.center(0,0);
     group.add(text);
@@ -109,6 +107,7 @@ function add_polyline(params){
     path.attr({id:'l_'+params.id})
     path.stroke({ color: '#ff0f06', width: 10, linecap: 'round' });
     console.log(`poly> l_${params.id}`);
+    filter.disp_turb('l_'+params.id);
 }
 
 function refresh_polyline(params){
@@ -131,6 +130,7 @@ function refresh_polyline(params){
         //let p2 = Vector.create(x2,y2);
         //let diff = Vector.sub(p2,p1);
 
+        filter.disp_turb('l_'+params.id);
     }
 }
 
@@ -206,7 +206,7 @@ function vertex_highlight(id,start){
     else{
         //vertex.css('fill',dat.params.VertexColor);
         vertex.attr({ fill: dat.params.VertexColor });
-        filter.shadow('vert_'+id);
+        filter.shadow_light('vert_'+id);
     }
     //console.log(`svg> highlight , ${start}`);
 

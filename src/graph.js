@@ -66,7 +66,7 @@ function init(){
 }
 
 function onWheel(e){
-	console.log(e.deltaY);
+	//console.log(e.deltaY);
 	let scale;
     if(e.deltaY > 0){
 		v.decrease(1.2);

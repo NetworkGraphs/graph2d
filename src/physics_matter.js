@@ -35,6 +35,11 @@ let canvas,context;
 let physics_element;
 let render_physics;
 let mouseConstraint;
+let forces = {
+    neighb_start_push:150, 
+    neighb_start_attract:250,
+    non_neighb_push:300
+};
 
 function init(phy_el,rend_phy,render_element){
     physics_element = phy_el;
@@ -145,11 +150,11 @@ function center_bring_neighbors(){
             const center_body = bm[body.has_center];
             const diff = Matter.Vector.sub(center_body.position, body.position);
             const distance = Matter.Vector.magnitude(diff);
-            if(distance < 150){
+            if(distance < forces.neighb_start_push){
                 const direction = Matter.Vector.normalise(diff);
                 body.force = Matter.Vector.mult(direction,-0.05);
             }
-            if(distance > 250){
+            if(distance > forces.neighb_start_attract){
                 const direction = Matter.Vector.normalise(diff);
                 body.force = Matter.Vector.mult(direction,0.05);
             }
@@ -166,7 +171,7 @@ function center_push_non_neighbors(){
             const center_body = bm[hover.center];
             const diff = Matter.Vector.sub(center_body.position, body.position);
             const distance = Matter.Vector.magnitude(diff);
-            if(distance < 300){
+            if(distance < forces.non_neighb_push){
                 const direction = Matter.Vector.normalise(diff);
                 body.force = Matter.Vector.mult(direction,-0.02);
             }
@@ -280,16 +285,19 @@ function vertex_update(d){
     Matter.World.remove(engine.world,body);
     let new_body = Matter.Bodies.rectangle(body.position.x,body.position.y,d.w,d.h,{id:body.id,label:body.label ,isvertex:true,mass:phy.body.mass});
     new_body.frictionAir = dat.params.frictionAir;
-    new_body.is_force_neighbors = false;
-    new_body.is_center = false;
+    new_body.is_force_neighbors = body.is_force_neighbors;
+    new_body.is_center = body.is_center;
+    new_body.has_center = body.has_center;
+
     Matter.World.addBody(engine.world,new_body);
     bm[d.id] = null;//shall be garbage collected
     bm[d.id] = new_body;
-    if(d.id == 3){
-        console.log(`density = ${new_body.density}, mass = ${new_body.mass}, inertia = ${new_body.inertia}`);
-    }
-    //body.width = d.w;
-    //body.height = d.h;
+
+    forces.neighb_start_push = d.w + d.h;
+    forces.neighb_start_attract = 2*d.w + d.h;
+    forces.non_neighb_push = 3 * d.w;
+    console.log(`f neighb_start_push = ${forces.neighb_start_push}, f neighb_start_attract = ${forces.neighb_start_attract}`);
+    //console.log(`density = ${new_body.density}, mass = ${new_body.mass}, inertia = ${new_body.inertia}`);
 }
 
 function onMatterVertex(e){
@@ -310,6 +318,7 @@ function edge_add(params){
     let b_1 = engine.world.bodies.find(body => (body.id == params.src));
     let b_2 = engine.world.bodies.find(body => (body.id == params.dest));
     console.log(`phy> added edge from '${b_1.label}' to '${b_2.label}' with weight (${params.weight.toFixed(2)})`);
+
 
     let length = 120;
     if(params.weight != 0){//weight of 0 means no edge constraint
