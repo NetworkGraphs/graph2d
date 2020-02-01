@@ -3,6 +3,13 @@ import * as view from "./view_svg.js";
 import * as physics from "./physics_matter.js";
 import * as stats from "./stats_app.js";
 import * as dat from "./gui_app.js";
+import * as mouse from "./mouse_move.js";
+
+
+let svg_div = document.createElement('div');
+svg_div.setAttribute("id","svg_div");
+document.body.appendChild(svg_div);
+
 
 let pyh_render_div = document.createElement('div');
 document.body.appendChild(pyh_render_div);
@@ -23,6 +30,7 @@ graph.init(dat.params["show physics"]);
 view.init(main_view_div);
 physics.init(main_view_div,dat.params["show physics"],pyh_render_div);
 stats.init(dat.params["show stats"]);
+mouse.init();
 
 function animate(){
 

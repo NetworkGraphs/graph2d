@@ -40,6 +40,10 @@ export default
                 "simulation":{
                 "constraintIterations":5
             },
+            "body":{
+                "mass":5,
+                "inertia":10000
+            },
             "gravity":0,
             "move_objects_with_mouse":true
         },

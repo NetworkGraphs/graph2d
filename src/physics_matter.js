@@ -22,7 +22,9 @@
 
 import * as utils from "./../src/utils.js";
 import config from "./../config.js";
-import * as dat from "./gui_app.js"
+import * as dat from "./gui_app.js";
+
+let phy = config.system.physics;
 
 let engine;
 let bm;//bodies map
@@ -257,10 +259,8 @@ function run(){
 function vertex_add(params){
     let x = params.w/2 +  Math.round((physics_element.offsetWidth-params.w) * Math.random());
     let y = params.h/2 + Math.round((physics_element.offsetHeight-2*params.h) * Math.random());
-    let body = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,label:params.label ,isvertex:true});
-
-    let frictionAir = localStorage.getItem("frictionAir");
-    body.frictionAir = (frictionAir === null)?0.3:frictionAir;
+    let body = Matter.Bodies.rectangle(x,y,params.w,params.h,{id:params.id,label:params.label ,isvertex:true,mass:phy.body.mass});
+    body.frictionAir = 0.3;
     body.is_force_neighbors = false;
     body.is_center = false;
     //console.log(`phy> ${params.label} has frictionAir at ${frictionAir}`);
@@ -269,6 +269,27 @@ function vertex_add(params){
         bm = new Map();
     }
     bm[params.id] = body;
+    if(params.id == 3){
+        console.log(`density = ${body.density}, mass = ${body.mass}, inertia = ${body.inertia}`);
+    }
+}
+
+function vertex_update(d){
+    let body = bm[d.id];
+    //Matter.Body.scale(body,d.scale,d.scale);// scale result in body x,y and all Vertices x,y to NaN
+    Matter.World.remove(engine.world,body);
+    let new_body = Matter.Bodies.rectangle(body.position.x,body.position.y,d.w,d.h,{id:body.id,label:body.label ,isvertex:true,mass:phy.body.mass});
+    new_body.frictionAir = dat.params.frictionAir;
+    new_body.is_force_neighbors = false;
+    new_body.is_center = false;
+    Matter.World.addBody(engine.world,new_body);
+    bm[d.id] = null;//shall be garbage collected
+    bm[d.id] = new_body;
+    if(d.id == 3){
+        console.log(`density = ${new_body.density}, mass = ${new_body.mass}, inertia = ${new_body.inertia}`);
+    }
+    //body.width = d.w;
+    //body.height = d.h;
 }
 
 function onMatterVertex(e){
@@ -278,6 +299,9 @@ function onMatterVertex(e){
     }
     if(d.type == 'hover'){
         vertex_hover(d);
+    }
+    if(d.type == 'update'){
+        vertex_update(d);
     }
 }
 

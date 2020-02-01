@@ -130,6 +130,9 @@ Existing Graph formats :
 # References
 * [GraphSon_blueprint.json](graphs/GraphSON_blueprints.json) taken from [GraphSON Reader and Write](https://github.com/tinkerpop/blueprints/wiki/GraphSON-Reader-and-Writer-Library)
 * http://tinkerpop.apache.org/docs/3.4.4/dev/io/#graphson
+* [SVG w3.org](https://www.w3.org/TR/SVG/Overview.html)
+* [SVG Filters](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/filter)
+* [CSS Filters](https://developer.mozilla.org/en-US/docs/Web/CSS/filter)
 
 # Samples
 * [The eyes have it](https://codepen.io/shubniggurath/pen/RqYxoz)

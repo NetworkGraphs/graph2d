@@ -14,8 +14,40 @@
 import * as utils from "./utils.js";
 import config from "../config.js";
 
+class shape {
+    constructor(width, height,round) {
+      this.height = height;
+      this.width = width;
+      this.round = round;
+      this.ratio = this.width / this.height;
+    }
+    set_width(w){
+        this.width = w;
+        this.ratio = this.width / this.height;
+        this.round_ratio = this.round / this.width;
+    }
+    set_height(w){
+        this.height = h;
+        this.ratio = this.width / this.height;
+        this.round_ratio = this.round / this.width;
+    }
+    increase(){
+        this.width = this.width * 1.2;
+        this.height = this.height * 1.2;
+        this.round = this.height * this.round_ratio;
+    }
+    decrease(){
+        this.width = this.width / 1.2;
+        this.height = this.height / 1.2;
+        this.round = this.height * this.round_ratio;
+    }
+};
+
+
 let graph,mg;
 let startup_time;
+
+let v = new shape(100,50);
 
 function init(){
     startup_time = Date.now();
@@ -25,12 +57,29 @@ function init(){
 	});
 	window.addEventListener('graph_edge', onGraphEdge, false);
 	window.addEventListener('graph_mouse', onGraphVertex, false);
+    window.addEventListener( 'wheel', onWheel, false );
 
 	fetch('./graphs/GraphSON_blueprints.json')
 	.then(response => response.json())
 	.then(json => import_graph(json))
 	
 }
+
+function onWheel(e){
+	console.log(e.deltaY);
+	let scale;
+    if(e.deltaY > 0){
+		v.decrease(1.2);
+		scale = 1/1.2;
+	}else if (e.deltaY < 0){
+		v.increase(1.2);
+		scale = 1.2;
+	}
+	graph.vertices.forEach(vertex =>{
+		utils.send('graph_vertex',{type:'update',id:vertex.id,w:v.width,h:v.height,s:scale});
+	});
+}
+
 
 function onGraphVertex(e){
 	if(e.detail.type == 'hover'){
@@ -103,7 +152,7 @@ function import_graph(input){
 	utils.send('graph',{action:'clear'});
     graph.vertices.forEach(vertex =>{
 		vertex = import_vertex(vertex);
-        utils.send('graph_vertex',{type:'add_before_edge',id:vertex.id,label:vertex.label,w:100,h:50});
+        utils.send('graph_vertex',{type:'add_before_edge',id:vertex.id,label:vertex.label,w:v.width,h:v.height});
 	});
 	graph.edges.forEach(edge => {
 		edge = import_edge(edge);
@@ -111,7 +160,7 @@ function import_graph(input){
 	});
     graph.vertices.forEach(vertex =>{
 		vertex = import_vertex(vertex);
-        utils.send('graph_vertex',{type:'add_after_edge',id:vertex.id,label:vertex.label,w:100,h:50});
+        utils.send('graph_vertex',{type:'add_after_edge',id:vertex.id,label:vertex.label,w:v.width,h:v.height});
 	});
 	mg = import_to_map_graph(graph);
 	console.log(`graph> init() : import_graph() + graph_events() after ${Date.now() - startup_time} ms`);
