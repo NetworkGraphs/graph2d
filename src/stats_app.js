@@ -51,8 +51,8 @@ function end(){
 
 function onStats(e){
     let show = e.detail["show stats"];
-    console.log(show);
     if(typeof(show) != "undefined"){
+        console.log(show);
         if(typeof(stats1) == "undefined"){
             init(show);
         }

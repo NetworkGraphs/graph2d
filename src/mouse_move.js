@@ -13,11 +13,11 @@ function init(){
 }
 
 function onMousePan(e){
-    console.log('Pan');
+    //console.log('Pan');
 }
 
 function onMouseZoom(e){
-    console.log('Zoom');
+    //console.log('Zoom');
 }
 
 export{init};

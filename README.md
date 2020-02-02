@@ -47,15 +47,22 @@ Existing Graph formats :
 * custom forces for horizontality adjustment of vertices
 * custom forces for neighbors field attraction
 * hover highlighting neighbors
+* hover highlighting neighbors edges
 * svg filters for drop shadow, light and displacement
+* mouse wheel scales vertices
 
 ## implementation plan
+* mouse wheel scales text
+* add edges labels
 * add vertices context menu for graph configuration
 * left click to fix, right click for config (touch, hold)
-* add edges labels
+* hover highlighted siblings push each other when too close
 * create display for groups
+* convert properties to colors
+* convert proerties to groups
 
 ## issues
+* displacement filter in edges results sometimes on a thin down to invisible edge
 * dragging nodes selects the labels text, which results on a text drag and drop on the next step. To be avoided by disallowing text selection. Issue relates to the physics engine handling the mouse events and not stopping the propagation.
 
 # General Features

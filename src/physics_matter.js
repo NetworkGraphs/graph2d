@@ -296,7 +296,7 @@ function vertex_update(d){
     forces.neighb_start_push = d.w + d.h;
     forces.neighb_start_attract = 2*d.w + d.h;
     forces.non_neighb_push = 3 * d.w;
-    console.log(`f neighb_start_push = ${forces.neighb_start_push}, f neighb_start_attract = ${forces.neighb_start_attract}`);
+    //console.log(`f neighb_start_push = ${forces.neighb_start_push}, f neighb_start_attract = ${forces.neighb_start_attract}`);
     //console.log(`density = ${new_body.density}, mass = ${new_body.mass}, inertia = ${new_body.inertia}`);
 }
 
@@ -317,9 +317,10 @@ function edge_add(params){
     //console.log(`phy> should add edge from ${params.src} to ${params.dest}`);
     let b_1 = engine.world.bodies.find(body => (body.id == params.src));
     let b_2 = engine.world.bodies.find(body => (body.id == params.dest));
-    console.log(`phy> added edge from '${b_1.label}' to '${b_2.label}' with weight (${params.weight.toFixed(2)})`);
+    //console.log(`phy> added edge from '${b_1.label}' to '${b_2.label}' with weight (${params.weight.toFixed(2)})`);
 
-
+    return;
+    
     let length = 120;
     if(params.weight != 0){//weight of 0 means no edge constraint
         length = 120/params.weight;
