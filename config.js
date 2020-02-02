@@ -12,7 +12,7 @@ export default
         "frictionAir":0.3,
         "VertexColor":"#228855",
         "VertexHighlight":"#20f046",
-        "graph":"GraphSON_blueprints",
+        "graph":"GraphSON_blueprints.json",
         "physics":{
             "renderer":{
                 "enabled":true,

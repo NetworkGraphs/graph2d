@@ -45,7 +45,7 @@ class shape {
     }
 };
 
-let graph,mg;
+let mg;
 let startup_time;
 
 let v = new shape(100,50);
@@ -79,27 +79,16 @@ function init(){
 				console.log(event.dataTransfer.files);
 				return;
 			}
-			if(event.dataTransfer.files[0].type != "application/json"){
-				alert(`only json files allowed not '${event.dataTransfer.files[0].type}'`);
-				console.log(event.dataTransfer.files);
-				return;
-			}
-			var reader = new FileReader();
-			reader.onloadend = function(e) {
-			var result = JSON.parse(this.result);
-			console.log(result);
-			import_graph(result);
+			import_graph_file(event.dataTransfer.files[0]);
 		};
-		reader.readAsText(event.dataTransfer.files[0]);
-		}
 	}
 
 	function onGraphEdge(e){
 		if(e.detail.type == "refresh_all"){
-			graph.edges.forEach(edge => {
+			for(let [eid,edge] of Object.entries(mg.edges)){
 				utils.send('graph_edge',{type:"refresh",id:edge.id,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
-			});
 			}
+		}
 	}
 
 	function onGraphVertex(e){
@@ -130,16 +119,16 @@ function init(){
 			v.increase(scale_step);
 			scale = scale_step;
 		}
-		graph.vertices.forEach(vertex =>{
-			utils.send('graph_vertex',{type:'update',id:vertex.id,w:v.width,h:v.height,s:scale});
-		});
+		for(let vid in mgraph.vertices){
+			utils.send('graph_vertex',{type:'update',id:vid,w:v.width,h:v.height,s:scale});
+		}
 	}
 
 	function onParams(e){
 		if(e.type == "params"){
 			if(typeof(e.detail.graph) != "undefined"){
 				console.log(`graph> user request to set graph (${e.detail.graph})`);
-				import_graph_file(`./graphs/${e.detail.graph}.json`);
+				import_graph_file(`./graphs/${e.detail.graph}`);
 			}
 		}
 	}
@@ -227,13 +216,41 @@ function init(){
 	}
 
 	function import_graph_file(file){
-		fetch(file)
-		.then(response => response.json())
-		.then(json => import_graph(json))
+		if(typeof(file) == "string"){
+			let extension = file.split('.').pop();
+			if(extension == "json"){
+				fetch(file)
+				.then(response => response.json())
+				.then(json => import_json_graph(json))
+			}
+			else if(extension == "graphml"){
+				fetch(file)
+				.then(response => import_xml_graph(response))
+			}
+		}
+		else{
+			let extension = file.name.split('.').pop();
+			var reader = new FileReader();
+			if(extension == "json"){
+				reader.onloadend = function(e) {
+					var result = JSON.parse(this.result);
+					import_json_graph(result);
+				};
+			}else if(extension == "graphml"){
+				reader.onloadend = function(e) {
+					import_xml_graph(this.result);
+				};
+			}
+			else{
+				alert(`unsupported graph format '${extension}'`);
+			}
+			reader.readAsText(file);
+		}
 	}
 
-	function import_graph(input){
+	function import_json_graph(input){
 		//    ----    support both graph structures    ----
+		let graph = {};
 		if(typeof(input.graph) != "undefined"){
 			graph = input.graph;
 		}
@@ -251,28 +268,75 @@ function init(){
 			edge = import_edge(edge);
 		});
 		mg = import_to_obj_graph(graph);
+		send_graph_events(mg);
 
+		console.log(`graph> init() : import_json_graph() + graph_events() after ${Date.now() - startup_time} ms`);
+	}
+
+	function element_to_map(element){
+		let res = {};
+		for(let j = 0; j < element.attributes.length; j++){
+			let attribute = element.attributes[j];
+			if(attribute.name != "id"){
+				res[attribute.name] = attribute.value;
+			}
+		}
+		let data = element.getElementsByTagName("data");
+		for(let j = 0; j < data.length; j++){
+			let key = data[j].getAttribute("key");
+			let value = data[j].textContent;
+			res[key] = value;
+		}
+	return res;
+	}
+
+	function import_xml_graph(input){
+		let parser = new DOMParser();
+		let xmlDoc = parser.parseFromString(input,"text/xml");
+		
+		let mg = {};
+		mg.vertices = {};
+		mg.edges = {};
+		let verticesNodes = xmlDoc.getElementsByTagName("node");
+		console.log(`graph> graphml file has ${verticesNodes.length} vertices`);
+		if(verticesNodes.length == 0){
+			alert("no vertices (nodes) found in graphml");
+			return;
+		}
+		for(let i = 0; i < verticesNodes.length; i++){
+			let v_node = verticesNodes[i];
+			let vid = v_node.getAttribute("id");
+			mg.vertices[vid] = element_to_map(v_node);
+		}
+		let edgeNodes = xmlDoc.getElementsByTagName("edge");
+		console.log(`graph> graphml file has ${edgeNodes.length} edges`);
+		for(let i = 0; i < edgeNodes.length; i++){
+			let e_node = edgeNodes[i];
+			let eid = e_node.getAttribute("id");
+			mg.edges[eid] = element_to_map(e_node);
+		}
+		console.log(mg);
+	}
+//    ----    Utils ----
+
+	function send_graph_events(mgraph){
+		console.log(mgraph);
 		let max_width = check_text_width(mg);
 		v.set_width(max_width + 20);
 		console.log(`text max width = ${max_width}`);
 
 		//    ----    send events    ----
 		utils.send('graph',{action:'clear'});
-		graph.vertices.forEach(vertex =>{
-			utils.send('graph_vertex',{type:'add_before_edge',id:vertex.id,label:vertex.label,w:v.width,h:v.height});
-		});
-		graph.edges.forEach(edge => {
-			utils.send('graph_edge',{type:"add",id:edge.id,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
-		});
-		graph.vertices.forEach(vertex =>{
-			utils.send('graph_vertex',{type:'add_after_edge',id:vertex.id,label:vertex.label,w:v.width,h:v.height});
-		});
-
-
-		console.log(`graph> init() : import_graph() + graph_events() after ${Date.now() - startup_time} ms`);
+		for(let [vid,vertex] of Object.entries(mgraph.vertices)){
+			utils.send('graph_vertex',{type:'add_before_edge',id:vid,label:vertex.label,w:v.width,h:v.height});
+		}
+		for(let [eid,edge] of Object.entries(mgraph.edges)){
+			utils.send('graph_edge',{type:"add",id:eid,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
+		}
+		for(let [vid,vertex] of Object.entries(mgraph.vertices)){
+			utils.send('graph_vertex',{type:'add_after_edge',id:vid,label:vertex.label,w:v.width,h:v.height});
+		}
 	}
-
-//    ----    Utils ----
 
 	function check_text_width(mgraph){
 		let res = 0;

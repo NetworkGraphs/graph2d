@@ -133,12 +133,39 @@ Existing Graph formats :
 * node outline can have a thickness and glow
 * node shape can be rectangular, elliptic or take any svg path
 
-# References
+# Graph format
+Most formats have node edge list with properties. edge labels and weights are optional.
+Mandatory parameters are :
+* Node id
+* Node label (as this is content graph display and not abstract graphs)
+* Edge id
+* Edge source
+* Edge target
+
+## Graph formats list
+* graphson : graph in json from Apache Tinkerpop. node edge list.
+* graphml : node edge list, xml. Flat, all keys, nodes lists at top level.
+* gefx : node edge list, xml. Grouped into nodes and edges elements.
+* gdf : node edge list, csv
+* gml : node edge list, yaml
+
+## graphson
 * [GraphSon_blueprint.json](graphs/GraphSON_blueprints.json) taken from [GraphSON Reader and Write](https://github.com/tinkerpop/blueprints/wiki/GraphSON-Reader-and-Writer-Library)
+
+## graphml
+* [The GraphML File Format](http://graphml.graphdrawing.org/)
+* [non normative details of GraphML](http://graphml.graphdrawing.org/primer/graphml-primer.html)
+
+# References
+## SVG CSS
 * http://tinkerpop.apache.org/docs/3.4.4/dev/io/#graphson
 * [SVG w3.org](https://www.w3.org/TR/SVG/Overview.html)
 * [SVG Filters](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/filter)
 * [CSS Filters](https://developer.mozilla.org/en-US/docs/Web/CSS/filter)
+
+## Graph javasctipt libraries
+* [Cytoscape](https://js.cytoscape.org/) : Graph theory (network) library for visualisation and analysis
+* [Sigma.js](http://sigmajs.org/) : Sigma is a JavaScript library dedicated to graph drawing. It makes easy to publish networks on Web pages, and allows developers to integrate network exploration in rich Web applications.
 
 # Samples
 * [The eyes have it](https://codepen.io/shubniggurath/pen/RqYxoz)
