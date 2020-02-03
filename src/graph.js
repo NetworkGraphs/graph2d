@@ -86,7 +86,7 @@ function init(){
 	function onGraphEdge(e){
 		if(e.detail.type == "refresh_all"){
 			for(let [eid,edge] of Object.entries(mg.edges)){
-				utils.send('graph_edge',{type:"refresh",id:edge.id,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
+				utils.send('graph_edge',{type:"refresh",id:eid,label:edge.label,src:edge.outV,dest:edge.inV,weight:edge.weight});
 			}
 		}
 	}
@@ -94,7 +94,7 @@ function init(){
 	function onGraphVertex(e){
 		if(e.detail.type == 'hover'){
 			if(e.detail.start){
-				console.log(`graph> hover on ${mg.vertices[e.detail.id].label}`);
+				console.log(`graph> hover on (${e.detail.id}) ${mg.vertices[e.detail.id].label}`);
 			}
 			utils.send('graph_vertex',{type:'hover',id:e.detail.id,start:e.detail.start,center:true});
 			for(let id of mg.vertices[e.detail.id].neighbors){
@@ -119,7 +119,7 @@ function init(){
 			v.increase(scale_step);
 			scale = scale_step;
 		}
-		for(let vid in mgraph.vertices){
+		for(let vid in mg.vertices){
 			utils.send('graph_vertex',{type:'update',id:vid,w:v.width,h:v.height,s:scale});
 		}
 	}
@@ -184,22 +184,13 @@ function init(){
 		return res;
 	}
 
-	function import_to_obj_graph(graph){
-		let res = {};
-		res.vertices = {};
-		graph.vertices.forEach(vertex => {
-			res.vertices[vertex.id]=vertex;
-		});
-		res.edges = {};
-		graph.edges.forEach(edge => {
-			res.edges[edge.id]=edge;
-		});
-		for(let [vid,v] of Object.entries(res.vertices)){
+	function add_neighbors(graph){
+		for(let [vid,v] of Object.entries(graph.vertices)){
 			v.neighbors = new Set();
 			v.in_neighbors = new Set();
 			v.out_neighbors = new Set();
 			v.edges = new Set();
-			for(let [eid,e] of Object.entries(res.edges)){
+			for(let [eid,e] of Object.entries(graph.edges)){
 					if(e.inV == vid){
 						v.in_neighbors.add(e.outV);
 						v.neighbors.add(e.outV);
@@ -212,6 +203,19 @@ function init(){
 					}
 				}
 		}
+	}
+
+	function import_to_obj_graph(graph){
+		let res = {};
+		res.vertices = {};
+		graph.vertices.forEach(vertex => {
+			res.vertices[vertex.id]=vertex;
+		});
+		res.edges = {};
+		graph.edges.forEach(edge => {
+			res.edges[edge.id]=edge;
+		});
+		add_neighbors(res);
 		return res;
 	}
 
@@ -290,11 +294,18 @@ function init(){
 	return res;
 	}
 
+	function replace(element,old,rep){
+		if(typeof(element[old]) != "undefined"){
+			element[rep] = element[old];
+			delete element[old];
+		}
+	}
+
 	function import_xml_graph(input){
 		let parser = new DOMParser();
 		let xmlDoc = parser.parseFromString(input,"text/xml");
 		
-		let mg = {};
+		mg = {};
 		mg.vertices = {};
 		mg.edges = {};
 		let verticesNodes = xmlDoc.getElementsByTagName("node");
@@ -313,15 +324,19 @@ function init(){
 		for(let i = 0; i < edgeNodes.length; i++){
 			let e_node = edgeNodes[i];
 			let eid = e_node.getAttribute("id");
-			mg.edges[eid] = element_to_map(e_node);
+			let edge = element_to_map(e_node);
+			replace(edge,"source","outV");
+			replace(edge,"target","inV");
+			mg.edges[eid] = edge;
 		}
+		add_neighbors(mg);
 		console.log(mg);
+		send_graph_events(mg);
 	}
 //    ----    Utils ----
 
 	function send_graph_events(mgraph){
-		console.log(mgraph);
-		let max_width = check_text_width(mg);
+		let max_width = check_text_width(mgraph);
 		v.set_width(max_width + 20);
 		console.log(`text max width = ${max_width}`);
 

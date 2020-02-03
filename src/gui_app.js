@@ -15,7 +15,7 @@ function setup_gui(params){
     gui.add( params, 'frictionAir', 0.0001, 1.0 ).listen().onChange( value => {utils.send("params",{frictionAir:value})} );
     gui.addColor( params, 'VertexColor').onFinishChange(             value => {utils.send("params",{VertexColor:value})});
     gui.addColor( params, 'VertexHighlight');
-	gui.add( params, 'graph',['GraphSON_blueprints.json','GraphSON_Tinker.json']).onChange(          value => {utils.send("params",{'graph':value});} );
+	gui.add( params, 'graph',['GraphSON_blueprints.json','GraphSON_Tinker.json','LesMiserables.graphml']).onChange(          value => {utils.send("params",{'graph':value});} );
     gui.add( params, 'save');
     gui.add( params, 'reset');
     return gui;
