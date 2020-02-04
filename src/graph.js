@@ -94,6 +94,7 @@ function init(){
 	function onGraphVertex(e){
 		if(e.detail.type == 'hover'){
 			if(e.detail.start){
+				console.log(`graph> hover on (${e.detail.id})`);
 				console.log(`graph> hover on (${e.detail.id}) ${mg.vertices[e.detail.id].label}`);
 			}
 			utils.send('graph_vertex',{type:'hover',id:e.detail.id,start:e.detail.start,center:true});
@@ -229,7 +230,8 @@ function init(){
 			}
 			else if(extension == "graphml"){
 				fetch(file)
-				.then(response => import_xml_graph(response))
+				.then(response => response.text())
+				.then(text => import_xml_graph(text))
 			}
 		}
 		else{
