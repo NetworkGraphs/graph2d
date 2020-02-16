@@ -30,7 +30,7 @@ graph.init(dat.params["show physics"]);
 view.init(main_view_div);
 physics.init(main_view_div,dat.params["show physics"],pyh_render_div);
 stats.init(dat.params["show stats"]);
-mouse.init();
+mouse.init(main_view_div);
 
 function animate(){
 

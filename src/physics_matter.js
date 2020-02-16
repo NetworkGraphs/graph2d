@@ -47,9 +47,9 @@ function init(phy_el,rend_phy,render_element){
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
     engine.world.gravity.y = config.system.physics.gravity;
-    
-    //console.log(`phy> element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
-    let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth*2, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
+    console.log(`phy> phy element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
+    console.log(`phy> rendelement width = ${render_element.offsetWidth} ; height = ${render_element.offsetHeight}`);
+    let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
     let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
     let wall_left = Matter.Bodies.rectangle(0, 0, 20, physics_element.offsetHeight*2, { id:"obst2" ,label:"wall_left",isStatic: true ,isvertex:false});
     //let wall_right = Matter.Bodies.rectangle(physics_element.offsetWidth-20, 0, physics_element.offsetHeight*2-20, physics_element.offsetHeight*2, { id:"obst3" ,label:"wall_right",isStatic: true ,isvertex:false});
@@ -94,7 +94,12 @@ function init(phy_el,rend_phy,render_element){
             });
         }
     }
+    canvas = render_element.getElementsByTagName("canvas")[0]
+    //add_mouse_interaction();
+    console.log(`phy> init() in ${Date.now() - start} ms`);
+}
 
+function add_mouse_interaction(){
     if(config.system.physics.move_objects_with_mouse){
         let mouse = Matter.Mouse.create(physics_element);
             mouseConstraint = Matter.MouseConstraint.create(engine, {
@@ -110,7 +115,6 @@ function init(phy_el,rend_phy,render_element){
         Matter.World.add(engine.world, mouseConstraint);
 
     }
-    console.log(`phy> init() in ${Date.now() - start} ms`);
 }
 
 function render_lineto(engine, context){
@@ -185,7 +189,7 @@ function apply_custom_forces(){
     center_push_non_neighbors();
 }
 
-function vertex_hover(d){
+function vertex_attract(d){
     const body = bm[d.id];
     //console.log(`phy> updating ${body.label}`);
     body.is_force_neighbors = d.start;
@@ -194,6 +198,15 @@ function vertex_hover(d){
     if(!d.center){
         body.has_center = d.cid;
         hover.center = d.cid;
+    }
+    else{
+        if(d.start){
+            Matter.Body.setStatic(body,true)
+        }
+        else{
+            Matter.Body.setStatic(body,false)
+        }
+        console.log(`body ${d.id} mass = ${body.mass}`)
     }
 }
 
@@ -305,8 +318,8 @@ function onMatterVertex(e){
     if(d.type == 'add_before_edge'){
         vertex_add(d);
     }
-    if(d.type == 'hover'){
-        vertex_hover(d);
+    if(d.type == 'act'){
+        vertex_attract(d);
     }
     if(d.type == 'update'){
         vertex_update(d);
@@ -340,9 +353,9 @@ function edge_add(params){
 
 function graph_clear(){
     Matter.World.clear(engine.world,true);
-    if(config.system.physics.move_objects_with_mouse){
-        Matter.World.add(engine.world, mouseConstraint);
-    }
+    //if(config.system.physics.move_objects_with_mouse){
+    //    Matter.World.add(engine.world, mouseConstraint);
+    //}
     bm = new Map();
 }
 

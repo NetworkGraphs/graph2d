@@ -57,8 +57,7 @@ function init(){
 		document.addEventListener(eventName, onDragEvents, false)
 	});
 	window.addEventListener('graph_edge', onGraphEdge, false);
-	window.addEventListener('graph_mouse', onGraphVertex, false);
-    window.addEventListener( 'wheel', onWheel, false );
+	window.addEventListener('graph_mouse', onGraphMouse, false);
     window.addEventListener( 'params', onParams, false );
 
 	import_graph_file('./graphs/GraphSON_blueprints.json');
@@ -91,34 +90,60 @@ function init(){
 		}
 	}
 
-	function onGraphVertex(e){
+	function onGraphMouse(e){
 		if(e.detail.type == 'hover'){
-			if(e.detail.start){
-				console.log(`graph> hover on (${e.detail.id})`);
-				console.log(`graph> hover on (${e.detail.id}) ${mg.vertices[e.detail.id].label}`);
-			}
-			utils.send('graph_vertex',{type:'hover',id:e.detail.id,start:e.detail.start,center:true});
-			for(let id of mg.vertices[e.detail.id].neighbors){
-				//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
-				utils.send('graph_vertex',{type:'hover',id:id,start:e.detail.start,center:false,cid:e.detail.id});
-			}
-			for(let id of mg.vertices[e.detail.id].edges){
-				//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
-				utils.send('graph_edge',{type:'hover',id:id,start:e.detail.start});
-			}
+			onHover(e);
+		}
+		else if(e.detail.type == 'act'){
+			onAct(e);
+		}
+		else if(e.detail.type == 'vertex_scale'){
+			onVertexScale(e);
 		}
 	}
 
-	function onWheel(e){
+	function onHover(e){
+		if(e.detail.start){
+			console.log(`graph> hover on (${e.detail.id})`);
+			console.log(`graph> hover on (${e.detail.id}) ${mg.vertices[e.detail.id].label}`);
+		}
+		utils.send('graph_vertex',{type:'hover',id:e.detail.id,start:e.detail.start,center:true});
+		for(let id of mg.vertices[e.detail.id].neighbors){
+			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
+			utils.send('graph_vertex',{type:'hover',id:id,start:e.detail.start,center:false,cid:e.detail.id});
+		}
+		for(let id of mg.vertices[e.detail.id].edges){
+			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
+			utils.send('graph_edge',{type:'hover',id:id,start:e.detail.start});
+		}
+	}
+
+	function onAct(e){
+		if(e.detail.start){
+			console.log(`graph> hover on (${e.detail.id})`);
+			console.log(`graph> hover on (${e.detail.id}) ${mg.vertices[e.detail.id].label}`);
+		}
+		utils.send('graph_vertex',{type:'act',id:e.detail.id,start:e.detail.start,center:true});
+		for(let id of mg.vertices[e.detail.id].neighbors){
+			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
+			utils.send('graph_vertex',{type:'act',id:id,start:e.detail.start,center:false,cid:e.detail.id});
+		}
+		for(let id of mg.vertices[e.detail.id].edges){
+			//console.log(`graph> ${mg.vertices[e.detail.id].label} <= ${mg.vertices[id].label}`);
+			utils.send('graph_edge',{type:'act',id:id,start:e.detail.start});
+		}
+	}
+
+	function onVertexScale(e){
 		//console.log(e.deltaY);
 		let scale_step = config.system.view.scale_ratio;
 		let scale;
-		if(e.deltaY > 0){
-			v.decrease(scale_step);
-			scale = 1/scale_step;
-		}else if (e.deltaY < 0){
+		if(e.detail.step == 'up'){
 			v.increase(scale_step);
 			scale = scale_step;
+		}else if (e.detail.step == 'down'){
+			v.decrease(scale_step);
+			scale = 1/scale_step;
 		}
 		for(let vid in mg.vertices){
 			utils.send('graph_vertex',{type:'update',id:vid,w:v.width,h:v.height,s:scale});

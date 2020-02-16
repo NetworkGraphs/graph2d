@@ -9,6 +9,7 @@ import * as utils from "./../src/utils.js";
 import * as dat from "./gui_app.js"
 import * as filter from "./filters.js"
 import config from "../config.js";
+import * as mouse from "./mouse_move.js";
 
 
 let draw;
@@ -24,28 +25,12 @@ function init(element){
     window.addEventListener( 'graph_vertex', onViewVertex, false );
     window.addEventListener( 'graph_edge', onViewEdge, false );
     window.addEventListener( 'graph', onGraph, false );
+    window.addEventListener( 'graph_mouse', onViewMouse, false );
     console.log(`view_svg> init() in ${Date.now() - start} ms`);
-
 }
 
 //----    Events    ----
 
-    function onMouseVertex(e){
-        //console.log(`${e.type} on ${e.target.id}`);
-        if(['contextmenu', 'click'].includes(e.type)){
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        if(['mouseover','touchstart'].includes(e.type)){
-            const id = e.target.id.substr(5,event.target.id.length);
-            utils.send('graph_mouse',{'type':'hover',id:id,start:true});
-        }
-        if(['mouseleave','touchend'].includes(e.type)){
-            const id = e.target.id.substr(5,event.target.id.length);
-            utils.send('graph_mouse',{'type':'hover',id:id,start:false});
-        }
-        return false;
-    }
 
     function onViewVertex(e){
         const d = e.detail;
@@ -85,6 +70,62 @@ function init(element){
             }
         }
     }
+
+    function onViewMouse(e){
+        if(e.detail.type == "view_scale"){
+            console.log(`view_svg> ${e.detail.step}`);
+            svg_scale(document.getElementById('svg_graph'),e.detail.step);
+        }
+    }
+//----    SVG Utils    ----
+function svg_get_scale(element){
+    let sx = 1;
+    let sy = 1;
+    let scale_exist = false;
+    element.transform.baseVal.forEach(transform => {
+        if(transform.type == SVGTransform.SVG_TRANSFORM_SCALE){
+            scale_exist = true;
+            sx = transform.matrix.a;
+            sy = transform.matrix.d;
+        }
+    });
+    return {sx:sx,sy:sy,exists:scale_exist};
+}
+
+function svg_scale(element,step){
+    let scale_exist = false;
+    element.transform.baseVal.forEach(transform => {
+        if(transform.type == SVGTransform.SVG_TRANSFORM_SCALE){
+            scale_exist = true;
+            let sx = transform.matrix.a;
+            if(step == 'up'){
+                let new_scale = sx / config.system.view.scale_ratio;
+                if (new_scale > config.system.view.scale_min){
+                    transform.setScale(new_scale,new_scale);
+                }
+            }else{
+                let new_scale = sx * config.system.view.scale_ratio;
+                if (new_scale < config.system.view.scale_max){
+                    transform.setScale(new_scale,new_scale);
+                }
+            }
+        }
+    });
+    if(!scale_exist){
+        let transform = element.createSVGTransform();
+        if(step == 'up'){
+            let new_scale = 1 / config.system.view.scale_ratio;
+                transform.setScale(new_scale,new_scale);
+        }else{
+            let new_scale = config.system.view.scale_ratio;
+            transform.setScale(new_scale,new_scale);
+        }
+        element.transform.baseVal.appendItem(transform);
+    }
+}
+
+//----    Graph    ----
+
 //----    Vertex    ----
 
     function vertex_add(d){
@@ -95,9 +136,11 @@ function init(element){
                     .rect(d.w,d.h)
                     .id('vert_'+d.id)
                     .attr({ fill: dat.params.VertexColor })
-                    .on([   'click', 'mouseover',
+                    .on([   
+                            'mousedown', 'mouseup',
+                            'click', 'mouseover',
                             'mouseleave','contextmenu',
-                            'touchstart','touchend'], onMouseVertex);
+                            'touchstart','touchend'], mouse.onMouseVertex);
         vert.center(0,0);
         vert.radius(10);
         filter.shadow_light('vert_'+d.id);
@@ -236,11 +279,11 @@ function init(element){
     function edge_highlight(params){
         let id = 'l_'+params.id;
         if(params.start){
-            filter.disp_turb(id);
+            //filter.disp_turb(id);
             document.getElementById(id).setAttribute("stroke",config.system.view.colors.edges.highlight);
         }
         else{
-            filter.clear(id);
+            //filter.clear(id);
             document.getElementById(id).setAttribute("stroke",config.system.view.colors.edges.default);
         }
     }

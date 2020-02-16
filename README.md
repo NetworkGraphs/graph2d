@@ -50,20 +50,25 @@ Existing Graph formats :
 * hover highlighting neighbors edges
 * svg filters for drop shadow, light and displacement
 * mouse wheel scales vertices
+* mouse wheel scales text
 
 ## implementation plan
-* mouse wheel scales text
-* add edges labels
+* pan zoom overall view
+* remove border walls
+* initial layout using static algorithm
 * add vertices context menu for graph configuration
 * left click to fix, right click for config (touch, hold)
+* add edges labels
 * hover highlighted siblings push each other when too close
 * create display for groups
 * convert properties to colors
 * convert proerties to groups
+* convert properties to node relative size
 
 ## issues
 * displacement filter in edges results sometimes on a thin down to invisible edge
 * dragging nodes selects the labels text, which results on a text drag and drop on the next step. To be avoided by disallowing text selection. Issue relates to the physics engine handling the mouse events and not stopping the propagation.
+* performace slowdown on S10+ down to 5 FPS with "LesMiserables" (40 ms inconsistent), 23 FPS 18 ms on PC
 
 # General Features
 * drag and drop to import graph files (standard .dot, custom .json)
