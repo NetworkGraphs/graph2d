@@ -69,7 +69,7 @@ export default
                     "highlight":"#aaf046"
                 }
             },
-            "scale_ratio":1.04,
+            "scale_ratio":1.08,
             "scale_min"  :0.2,
             "scale_max"  :5
         }

@@ -6,14 +6,10 @@ import * as dat from "./gui_app.js";
 import * as mouse from "./mouse_move.js";
 
 
-let svg_div = document.createElement('div');
-svg_div.setAttribute("id","svg_div");
-document.body.appendChild(svg_div);
-
-
 let pyh_render_div = document.createElement('div');
 document.body.appendChild(pyh_render_div);
 let main_view_div = document.createElement('div');
+main_view_div.id = "svg_div";
 document.body.appendChild(main_view_div);
 
 dat.init();

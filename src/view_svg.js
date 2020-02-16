@@ -26,6 +26,7 @@ function init(element){
     window.addEventListener( 'graph_edge', onViewEdge, false );
     window.addEventListener( 'graph', onGraph, false );
     window.addEventListener( 'graph_mouse', onViewMouse, false );
+    svg_transform_init(document.getElementById('svg_graph'));
     console.log(`view_svg> init() in ${Date.now() - start} ms`);
 }
 
@@ -72,55 +73,73 @@ function init(element){
     }
 
     function onViewMouse(e){
+        let svg = document.getElementById('svg_graph');
         if(e.detail.type == "view_scale"){
-            console.log(`view_svg> ${e.detail.step}`);
-            svg_scale(document.getElementById('svg_graph'),e.detail.step);
+            //svg_move(svg,0,0);
+            svg_scale(svg,e.detail.step,e.detail.origin);
+        }else if(e.detail.type == "view_move"){
+            svg_shift(svg,e.detail.tx,e.detail.ty);
         }
     }
 //----    SVG Utils    ----
-function svg_get_scale(element){
-    let sx = 1;
-    let sy = 1;
-    let scale_exist = false;
-    element.transform.baseVal.forEach(transform => {
-        if(transform.type == SVGTransform.SVG_TRANSFORM_SCALE){
-            scale_exist = true;
-            sx = transform.matrix.a;
-            sy = transform.matrix.d;
-        }
-    });
-    return {sx:sx,sy:sy,exists:scale_exist};
+//important to call so that translate comes before the scale
+function svg_transform_init(element){
+    let svg = document.getElementById('svg_graph');
+    svg.style.backgroundColor = "#fafafa";
+    let tr_translate = element.createSVGTransform();
+    tr_translate.setTranslate(0,0);
+    element.transform.baseVal.appendItem(tr_translate);
+
+    let tr_scale = element.createSVGTransform();
+    tr_scale.setScale(1,1);
+    element.transform.baseVal.appendItem(tr_scale);
+
+    element.style.transformOrigin = "0% 0%";
 }
 
-function svg_scale(element,step){
-    let scale_exist = false;
-    element.transform.baseVal.forEach(transform => {
-        if(transform.type == SVGTransform.SVG_TRANSFORM_SCALE){
-            scale_exist = true;
-            let sx = transform.matrix.a;
-            if(step == 'up'){
-                let new_scale = sx / config.system.view.scale_ratio;
-                if (new_scale > config.system.view.scale_min){
-                    transform.setScale(new_scale,new_scale);
-                }
-            }else{
-                let new_scale = sx * config.system.view.scale_ratio;
-                if (new_scale < config.system.view.scale_max){
-                    transform.setScale(new_scale,new_scale);
-                }
+function svg_scale(element,step,origin){
+    let rect_prev = element.getBoundingClientRect();
+    let transform = element.transform.baseVal[1];
+    let tochange = false;
+    let new_scale;
+    if(transform.type == SVGTransform.SVG_TRANSFORM_SCALE){
+        let sx = transform.matrix.a;
+        if(step == 'up'){
+            new_scale = sx / config.system.view.scale_ratio;
+            if (new_scale > config.system.view.scale_min){
+                tochange = true;
+            }
+        }else{
+            new_scale = sx * config.system.view.scale_ratio;
+            if (new_scale < config.system.view.scale_max){
+                tochange = true;
             }
         }
-    });
-    if(!scale_exist){
-        let transform = element.createSVGTransform();
-        if(step == 'up'){
-            let new_scale = 1 / config.system.view.scale_ratio;
-                transform.setScale(new_scale,new_scale);
-        }else{
-            let new_scale = config.system.view.scale_ratio;
-            transform.setScale(new_scale,new_scale);
-        }
-        element.transform.baseVal.appendItem(transform);
+    }
+    if(tochange){
+        transform.setScale(new_scale,new_scale);
+        let rect = element.getBoundingClientRect();
+        let dx = origin.rx * (rect.width - rect_prev.width);
+        let dy = origin.ry * (rect.height - rect_prev.height);
+        svg_shift(element,-dx,-dy);
+    }
+    //console.log(`after scale w = ${rect.width} ; h = ${rect.height}`);
+}
+
+function svg_move(element,px,py){
+    let transform = element.transform.baseVal[0];
+    if(transform.type == SVGTransform.SVG_TRANSFORM_TRANSLATE){
+        transform.setTranslate(px,py);
+    }
+}
+
+function svg_shift(element,tx,ty){
+    console.log(`tx = ${tx} ; ty = ${ty}`);
+    let transform = element.transform.baseVal[0];
+    if(transform.type == SVGTransform.SVG_TRANSFORM_TRANSLATE){
+        let new_tx = transform.matrix.e + tx;
+        let new_ty = transform.matrix.f + ty;
+        transform.setTranslate(new_tx,new_ty);
     }
 }
 
@@ -138,7 +157,7 @@ function svg_scale(element,step){
                     .attr({ fill: dat.params.VertexColor })
                     .on([   
                             'mousedown', 'mouseup',
-                            'click', 'mouseover',
+                            'click', 'mouseenter',
                             'mouseleave','contextmenu',
                             'touchstart','touchend'], mouse.onMouseVertex);
         vert.center(0,0);
