@@ -24,7 +24,7 @@ else{
 
 graph.init(dat.params["show physics"]);
 view.init(main_view_div);
-physics.init(main_view_div,dat.params["show physics"],pyh_render_div);
+physics.init(main_view_div,pyh_render_div);
 stats.init(dat.params["show stats"]);
 mouse.init(main_view_div);
 

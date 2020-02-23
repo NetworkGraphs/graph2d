@@ -33,7 +33,6 @@ let renderer;
 //lineto renderer objects
 let canvas,context;
 let physics_element;
-let render_physics;
 let mouseConstraint;
 let forces = {
     neighb_start_push:150, 
@@ -41,19 +40,22 @@ let forces = {
     non_neighb_push:300
 };
 
-function init(phy_el,rend_phy,render_element){
+function init(phy_el,render_element){
     physics_element = phy_el;
-    render_physics = rend_phy;
     const start = Date.now();
     engine = Matter.Engine.create({enableSleeping:true});
     engine.world.gravity.y = config.system.physics.gravity;
-    console.log(`phy> phy element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
-    console.log(`phy> rendelement width = ${render_element.offsetWidth} ; height = ${render_element.offsetHeight}`);
-    let ground = Matter.Bodies.rectangle(0, physics_element.offsetHeight, physics_element.offsetWidth, 20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
-    let ceiling = Matter.Bodies.rectangle(0, 0, physics_element.offsetWidth*2, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
-    let wall_left = Matter.Bodies.rectangle(0, 0, 20, physics_element.offsetHeight*2, { id:"obst2" ,label:"wall_left",isStatic: true ,isvertex:false});
-    //let wall_right = Matter.Bodies.rectangle(physics_element.offsetWidth-20, 0, physics_element.offsetHeight*2-20, physics_element.offsetHeight*2, { id:"obst3" ,label:"wall_right",isStatic: true ,isvertex:false});
-    Matter.World.add(engine.world,[ground,ceiling,wall_left]);
+    if(config.system.physics.walls){
+        let brect = physics_element.getBoundingClientRect();
+        console.log(`phy> phy element width = ${physics_element.offsetWidth} ; height = ${physics_element.offsetHeight}`);
+        console.log(`phy> rendelement width = ${render_element.offsetWidth} ; height = ${render_element.offsetHeight}`);
+        console.log(`phy> brect width = ${brect.width} ; height = ${brect.height}`);
+        let ground = Matter.Bodies.rectangle(brect.width/2,brect.height-10,brect.width,20, { id:"obst0" ,label:"ground",isStatic: true ,isvertex:false});
+        let ceiling = Matter.Bodies.rectangle(brect.width/2, 10, brect.width, 20, { id:"obst1" ,label:"ceiling",isStatic: true ,isvertex:false});
+        let wall_left = Matter.Bodies.rectangle(10, brect.height/2, 20, brect.height, { id:"obst2" ,label:"wall_left",isStatic: true ,isvertex:false});
+        let wall_right = Matter.Bodies.rectangle(brect.width-10, brect.height/2, 20, brect.height, { id:"obst3" ,label:"wall_right",isStatic: true ,isvertex:false});
+        Matter.World.add(engine.world,[ground,ceiling,wall_left,wall_right]);
+    }
 
     window.addEventListener( 'resize', onResize, false );
     window.addEventListener( 'graph_vertex', onMatterVertex, false );
@@ -61,38 +63,36 @@ function init(phy_el,rend_phy,render_element){
     window.addEventListener( 'graph', onGraph, false );
     window.addEventListener( 'engine', onEngine, false );
 
-    if(render_physics){
-        if(config.system.physics.renderer.type_lineto){
-            canvas = document.createElement('canvas');
-            context = canvas.getContext('2d');
-            canvas.width = physics_element.offsetWidth;
-            canvas.height = physics_element.offsetHeight;
-            render_element.appendChild(canvas);
-        }
-        if(dat.params["show physics"]){
-            renderer = Matter.Render.create({
-                element: render_element,
-                engine: engine,
-                options: {
-                    width: render_element.offsetWidth,
-                    height: render_element.offsetHeight,
-                    showAngleIndicator: false,
-                    showVelocity: true,
-                    showBounds: true,
-                    showBroadphase: true,
-                    showAxes: true,
-                    showIds: true,
-                    showCollisions: true,
-                    showSleeping:true,
-                    showDebug:false,
-                    wireframes: true,
-                    constraintIterations:config.system.physics.simulation.constraintIterations
-                    //constraintIterations default = 2
-                    //positionIterations default = 6
-                    //velocityIterations default = 4
-                }
-            });
-        }
+    if(config.system.physics.renderer.type_lineto){
+        canvas = document.createElement('canvas');
+        context = canvas.getContext('2d');
+        canvas.width = physics_element.offsetWidth;
+        canvas.height = physics_element.offsetHeight;
+        render_element.appendChild(canvas);
+    }
+    if(dat.params["show physics"]){
+        renderer = Matter.Render.create({
+            element: render_element,
+            engine: engine,
+            options: {
+                width: render_element.offsetWidth,
+                height: render_element.offsetHeight,
+                showAngleIndicator: false,
+                showVelocity: true,
+                showBounds: true,
+                showBroadphase: true,
+                showAxes: true,
+                showIds: true,
+                showCollisions: true,
+                showSleeping:true,
+                showDebug:false,
+                wireframes: true,
+                constraintIterations:config.system.physics.simulation.constraintIterations
+                //constraintIterations default = 2
+                //positionIterations default = 6
+                //velocityIterations default = 4
+            }
+        });
     }
     canvas = render_element.getElementsByTagName("canvas")[0]
     //add_mouse_interaction();
@@ -264,13 +264,11 @@ function run(){
     if(any_vertex_to_move){
         utils.send('graph_edge',{type:'refresh_all'});
     }
-    if(render_physics){
-        if(config.system.physics.renderer.type_lineto){
-            render_lineto(engine,context);
-        }
-        if(dat.params["show physics"]){
-            Matter.Render.world(renderer);
-        }
+    if(config.system.physics.renderer.type_lineto){
+        render_lineto(engine,context);
+    }
+    if(dat.params["show physics"]){
+        Matter.Render.world(renderer);
     }
 }
 

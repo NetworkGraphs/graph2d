@@ -49,17 +49,19 @@ Existing Graph formats :
 * hover highlighting neighbors
 * hover highlighting neighbors edges
 * svg filters for drop shadow, light and displacement
-* mouse wheel scales vertices
-* mouse wheel scales text
+* mouse wheel on vertices scales vertices and their labels
+* mouse drag on background pan zoom overall view, with mouse centered zoom
 
 ## implementation plan
-* pan zoom overall view
+* drag nodes with mouse
+* mouse button variants with touch number
+* lighten non neighbors to ease movement of neighbors
+* hover highlighted siblings push each other when too close
 * remove border walls
 * initial layout using static algorithm
 * add vertices context menu for graph configuration
 * left click to fix, right click for config (touch, hold)
 * add edges labels
-* hover highlighted siblings push each other when too close
 * create display for groups
 * convert properties to colors
 * convert proerties to groups

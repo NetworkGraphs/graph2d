@@ -138,10 +138,10 @@ function init(){
 		//console.log(e.deltaY);
 		let scale_step = config.system.view.scale_ratio;
 		let scale;
-		if(e.detail.step == 'up'){
+		if(e.detail.step == 'down'){
 			v.increase(scale_step);
 			scale = scale_step;
-		}else if (e.detail.step == 'down'){
+		}else if (e.detail.step == 'up'){
 			v.decrease(scale_step);
 			scale = 1/scale_step;
 		}

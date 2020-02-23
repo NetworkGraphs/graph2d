@@ -46,7 +46,8 @@ export default
                 "inertia":10000
             },
             "gravity":0,
-            "move_objects_with_mouse":true
+            "move_objects_with_mouse":true,
+            "walls":false
         },
         "app":{
             "debug_rotation":false

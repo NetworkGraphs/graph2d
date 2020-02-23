@@ -1,7 +1,7 @@
 import * as utils from "./../src/utils.js";
 import * as dat from "./gui_app.js";
 
-let state ={over_vertex:false,coord:{x:0,y:0},isdown:false,origin:{rx:0,ry:0}};
+let state ={over_vertex:false,coord:{x:0,y:0},isdown:false,origin:{rx:0,ry:0},dragging:false,acting:false};
 
 function init(element){
 
@@ -56,38 +56,78 @@ function onMouseVertex(e){
     //console.log(`${e.type} on ${e.target.id}`);
     const id = e.target.id.substr(5,e.target.id.length);
     let type,start;
+    let type2 = null;
     if(['contextmenu', 'click'].includes(e.type)){
         e.preventDefault();
         e.stopPropagation();
     }
-    if(['mousedown'].includes(e.type)){
-        type = 'act';
-        start = true;
+    else if(['mousedown'].includes(e.type)){
+        if(e.buttons == 2){
+            type = 'act';
+            start = true;
+            state.acting = true;
+        }else if(e.buttons == 1){
+            type = 'drag';
+            start = true;
+            console.log("drag start");
+            state.dragging = true;
+        }
     }
-    if(['mouseup'].includes(e.type)){
-        type = 'act';
-        start = false;
+    else if(['mouseup'].includes(e.type)){
+        if(state.dragging){
+            type = 'drag';
+            start = false;
+            state.dragging = false;
+            console.log("drag over");
+        }
+        if(state.acting){
+            type = 'act';
+            start = false;
+            state.acting = false;
+        }
     }
-    if(['mouseenter','touchstart'].includes(e.type)){
+    else if(e.type == 'touchstart'){
+        if(e.touches.length == 1){
+            type = 'hover';
+            start = true;
+            state.over_vertex = true;
+        }
+        else if(e.touches.length == 2){
+            type = 'act';
+            start = true;
+            type2 = 'hover'
+            state.acting = true;
+            state.over_vertex = true;
+        }
+    }
+    else if(e.type == 'mouseenter'){
         type = 'hover';
         start = true;
         state.over_vertex = true;
     }
-    if(['mouseleave','touchend'].includes(e.type)){
+    else if(['mouseleave','touchend'].includes(e.type)){
         type = 'hover';
         start = false;
         state.over_vertex = false;
+        if(state.acting){
+            type2 = 'act';
+            start = false;
+            state.acting = false;
+        }
     }
     utils.send('graph_mouse',{type:type,id:id,start:start});
+    if(type2 != null){
+        utils.send('graph_mouse',{type:type2,id:id,start:start});
+    }
     return false;
 }
 
 function onWheel(e){
     let step;
     if(e.deltaY > 0){
-        step = 'down';
-    }else if (e.deltaY < 0){
         step = 'up';
+    }else if (e.deltaY < 0){
+        step = 'down';
     }
     if(state.over_vertex){
         utils.send('graph_mouse',{type:'vertex_scale',step:step});
