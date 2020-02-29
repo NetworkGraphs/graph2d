@@ -134,7 +134,7 @@ function svg_move(element,px,py){
 }
 
 function svg_shift(element,tx,ty){
-    console.log(`tx = ${tx} ; ty = ${ty}`);
+    //console.log(`tx = ${tx} ; ty = ${ty}`);
     let transform = element.transform.baseVal[0];
     if(transform.type == SVGTransform.SVG_TRANSFORM_TRANSLATE){
         let new_tx = transform.matrix.e + tx;

@@ -29,6 +29,7 @@ let phy = config.system.physics;
 let engine;
 let bm;//bodies map
 let hover = {active:false, center:0};
+let drag = {};
 let renderer;
 //lineto renderer objects
 let canvas,context;
@@ -60,6 +61,7 @@ function init(phy_el,render_element){
     window.addEventListener( 'resize', onResize, false );
     window.addEventListener( 'graph_vertex', onMatterVertex, false );
     window.addEventListener( 'graph_edge', onMatterEdge, false );
+    window.addEventListener( 'graph_mouse', onViewMouse, false );
     window.addEventListener( 'graph', onGraph, false );
     window.addEventListener( 'engine', onEngine, false );
 
@@ -97,6 +99,35 @@ function init(phy_el,render_element){
     canvas = render_element.getElementsByTagName("canvas")[0]
     //add_mouse_interaction();
     console.log(`phy> init() in ${Date.now() - start} ms`);
+}
+
+function onViewMouse(e){
+    if(e.detail.type == "drag"){
+        if(e.detail.start){
+            console.log(`phy> started dragging ${e.detail.id}`)
+            const body = bm[e.detail.id];
+            drag.position = body.position
+            drag.constraint = Matter.Constraint.create({
+                bodyA: body,
+                length:0,
+                stiffness: 0.01,
+                damping: 0.05,
+                pointB:body.position
+            });
+            Matter.World.addConstraint(engine.world,drag.constraint);
+            //console.log(drag.constraint);
+        }else{
+            console.log(`phy> drag over`);
+            Matter.World.remove(engine.world,drag.constraint);
+        }
+        //vertex_shift(,e.detail.tx,e.detail.ty);
+    }
+    else if(e.detail.type == "vert_move"){
+        //console.log(e.detail.tx)
+        drag.position = Matter.Vector.add(drag.position,Matter.Vector.create(e.detail.tx,e.detail.ty));
+        drag.constraint.pointB = drag.position;
+        console.log(drag.position)
+    }
 }
 
 function add_mouse_interaction(){

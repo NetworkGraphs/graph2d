@@ -28,15 +28,23 @@ function onMousePan(e){
     let my = e.clientY;//e.offsetY
     let dx = mx - state.coord.x;
     let dy = my - state.coord.y;
-    let movetype = null;
-    if(e.target.tagName == "rect"){
-        movetype = 'vert_move';
-        onMouseVertex(e);
-    }else if(e.target.tagName == "svg"){//svg or div
-        movetype = 'view_move'
+    if(state.dragging){
+        if(e.type == "mouseup"){
+            utils.send('graph_mouse',{type:'drag',start:false})
+            state.dragging = false;//for mouse up outside the vertex after starting a down inside
+        }
     }
-    if((e.buttons == 1) && (e.type == "mousemove") && (movetype!=null)){
-        utils.send('graph_mouse',{type:movetype,tx:dx,ty:dy});
+    if((e.type != "mousemove") && (e.target.tagName == "rect")){
+        onMouseVertex(e);        
+    }
+    if((e.buttons == 1) && (e.type == "mousemove")){
+        if(state.dragging){
+            utils.send('graph_mouse',{type:'vert_move',tx:dx,ty:dy});
+        }else if(e.target.tagName == "svg"){//svg or div
+            if(!state.dragging){
+                utils.send('graph_mouse',{type:'view_move',tx:dx,ty:dy});
+            }
+        }
     }
     state.coord.x = mx;
     state.coord.y = my;
@@ -48,70 +56,61 @@ function onMousePan(e){
 function onMouseVertex(e){
     //console.log(`${e.type} on ${e.target.id}`);
     const id = e.target.id.substr(5,e.target.id.length);
-    let type,start;
-    let type2 = null;
+    let graph_events = [];
+    let start;
     if(['contextmenu', 'click'].includes(e.type)){
         e.preventDefault();
         e.stopPropagation();
-    }
-    else if(['mousedown'].includes(e.type)){
+    }else if(['mousedown'].includes(e.type)){
         if(e.buttons == 2){
-            type = 'act';
+            graph_events.push('act');
             start = true;
             state.acting = true;
         }else if(e.buttons == 1){
-            type = 'drag';
+            graph_events.push('drag');
             start = true;
-            console.log("drag start");
+            //console.log("drag start");
             state.dragging = true;
         }
-    }
-    else if(['mouseup'].includes(e.type)){
+    }else if(['mouseup'].includes(e.type)){
         if(state.dragging){
-            type = 'drag';
-            start = false;
+            graph_events.push('drag');
             state.dragging = false;
-            console.log("drag over");
+            start = false;
+            //console.log("drag over");
         }
         if(state.acting){
-            type = 'act';
+            graph_events.push('act');
             start = false;
             state.acting = false;
         }
-    }
-    else if(e.type == 'touchstart'){
+    }else if(e.type == 'touchstart'){
         if(e.touches.length == 1){
-            type = 'hover';
+            graph_events.push('hover');
             start = true;
             state.over_vertex = true;
-        }
-        else if(e.touches.length == 2){
-            type = 'act';
+        }else if(e.touches.length == 2){
+            graph_events.push('act');
             start = true;
-            type2 = 'hover'
+            graph_events.push('hover');
             state.acting = true;
             state.over_vertex = true;
         }
-    }
-    else if(e.type == 'mouseenter'){
-        type = 'hover';
+    }else if(e.type == 'mouseenter'){
+        graph_events.push('hover');
         start = true;
         state.over_vertex = true;
-    }
-    else if(['mouseleave','touchend'].includes(e.type)){
-        type = 'hover';
+    }else if(['mouseleave','touchend'].includes(e.type)){
+        graph_events.push('hover');
         start = false;
         state.over_vertex = false;
         if(state.acting){
-            type2 = 'act';
+            graph_events.push('act');
             start = false;
             state.acting = false;
         }
     }
-    utils.send('graph_mouse',{type:type,id:id,start:start});
-    if(type2 != null){
-        utils.send('graph_mouse',{type:type2,id:id,start:start});
-    }
+    graph_events.forEach(type => utils.send('graph_mouse',{type:type,id:id,start:start}));
     return false;
 }
 
