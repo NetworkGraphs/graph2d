@@ -1,7 +1,7 @@
 import * as utils from "./../src/utils.js";
 import * as dat from "./gui_app.js";
 
-let state ={over_vertex:false,coord:{x:0,y:0},isdown:false,origin:{rx:0,ry:0},dragging:false,acting:false};
+let state ={over_vertex:false,coord:{x:0,y:0},dragging:false,acting:false};
 
 function init(element){
 
@@ -10,48 +10,41 @@ function init(element){
     element.addEventListener( 'mousedown', onMousePan, false );
     element.addEventListener( 'mouseup', onMousePan, false );
     element.addEventListener( 'mousemove', onMousePan, false );
-    element.addEventListener( 'mousedown', onMouseZoom, false );
     element.addEventListener( 'wheel', onWheel, false );
+    element.addEventListener( 'contextmenu', onContext, false );
 
-    //onMouseVertex registred by the view_svg for every svg vertex
+    //onMouseVertex for every rect mouseenter,mouseleave
+}
+
+function onContext(e){
+    if(e.target.tagName == "rect"){
+        e.preventDefault();
+        e.stopPropagation();
+    }
 }
 
 function onMousePan(e){
+    let mx = e.clientX;//e.offsetX
+    let my = e.clientY;//e.offsetY
+    let dx = mx - state.coord.x;
+    let dy = my - state.coord.y;
+    let movetype = null;
     if(e.target.tagName == "rect"){
-        //TODO handle vertex move on physics
-    }else{//svg or div
-        let mx = e.clientX;//e.offsetX
-        let my = e.clientY;//e.offsetY
-        if(e.buttons == 1){
-            if(e.type == "mousedown"){
-                state.isdown = true;
-            }else if(e.type == "mouseup"){
-                state.isdown = false;
-            }else if(e.type == "mousemove"){
-                let dx = mx - state.coord.x;
-                let dy = my - state.coord.y;
-                utils.send('graph_mouse',{type:'view_move',tx:dx,ty:dy});
-            }
-        }
-        if(e.target.tagName == "svg"){
-            let svg_rect_no_scale = e.target.parentElement.getBoundingClientRect();
-            state.origin.rx = e.offsetX / svg_rect_no_scale.width;
-            state.origin.ry = e.offsetY / svg_rect_no_scale.height;
-            //console.log(`rx=${state.origin.rx.toFixed(2)} , ry=${state.origin.ry.toFixed(2)} ; w=${svg_rect_scale.width.toFixed(2)} ; h=${svg_rect_scale.height.toFixed(2)}`);
-        }
-        state.coord.x = mx;
-        state.coord.y = my;
+        movetype = 'vert_move';
+        onMouseVertex(e);
+    }else if(e.target.tagName == "svg"){//svg or div
+        movetype = 'view_move'
     }
+    if((e.buttons == 1) && (e.type == "mousemove") && (movetype!=null)){
+        utils.send('graph_mouse',{type:movetype,tx:dx,ty:dy});
+    }
+    state.coord.x = mx;
+    state.coord.y = my;
     e.preventDefault();
     e.stopPropagation();
 }
 
-function onMouseZoom(e){
-    //console.log('Zoom');
-    e.preventDefault();
-    e.stopPropagation();
-}
-
+//coming from a registration in each rect to have mouseenter / mouseleave,...
 function onMouseVertex(e){
     //console.log(`${e.type} on ${e.target.id}`);
     const id = e.target.id.substr(5,e.target.id.length);
@@ -132,7 +125,9 @@ function onWheel(e){
     if(state.over_vertex){
         utils.send('graph_mouse',{type:'vertex_scale',step:step});
     }else{
-        utils.send('graph_mouse',{type:'view_scale',step:step,origin:state.origin});
+        let svg_rect_no_scale = e.target.parentElement.getBoundingClientRect();
+        let origin = {rx:e.offsetX / svg_rect_no_scale.width,ry:e.offsetY / svg_rect_no_scale.height};
+        utils.send('graph_mouse',{type:'view_scale',step:step,origin:origin});
     }
     e.preventDefault();
     e.stopPropagation();

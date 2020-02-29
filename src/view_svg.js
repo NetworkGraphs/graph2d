@@ -155,11 +155,8 @@ function svg_shift(element,tx,ty){
                     .rect(d.w,d.h)
                     .id('vert_'+d.id)
                     .attr({ fill: dat.params.VertexColor })
-                    .on([   
-                            'mousedown', 'mouseup',
-                            'click', 'mouseenter',
-                            'mouseleave','contextmenu',
-                            'touchstart','touchend'], mouse.onMouseVertex);
+                    .on([   'mouseenter','mouseleave'],
+                            mouse.onMouseVertex);
         vert.center(0,0);
         vert.radius(10);
         filter.shadow_light('vert_'+d.id);
