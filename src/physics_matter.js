@@ -110,8 +110,8 @@ function onViewMouse(e){
             drag.constraint = Matter.Constraint.create({
                 bodyA: body,
                 length:0,
-                stiffness: 0.01,
-                damping: 0.05,
+                stiffness: 0.03,
+                damping: 0.03,
                 pointB:body.position
             });
             Matter.World.addConstraint(engine.world,drag.constraint);

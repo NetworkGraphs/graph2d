@@ -101,13 +101,15 @@ function onMouseVertex(e){
         start = true;
         state.over_vertex = true;
     }else if(['mouseleave','touchend'].includes(e.type)){
-        graph_events.push('hover');
-        start = false;
-        state.over_vertex = false;
-        if(state.acting){
-            graph_events.push('act');
+        if(!state.dragging){
+            graph_events.push('hover');
             start = false;
-            state.acting = false;
+            state.over_vertex = false;
+            if(state.acting){
+                graph_events.push('act');
+                start = false;
+                state.acting = false;
+            }
         }
     }
     graph_events.forEach(type => utils.send('graph_mouse',{type:type,id:id,start:start}));

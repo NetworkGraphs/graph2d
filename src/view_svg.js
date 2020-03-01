@@ -84,8 +84,7 @@ function init(element){
 //----    SVG Utils    ----
 //important to call so that translate comes before the scale
 function svg_transform_init(element){
-    let svg = document.getElementById('svg_graph');
-    svg.style.backgroundColor = "#fafafa";
+    element.style.backgroundColor = "#fafafa";
     let tr_translate = element.createSVGTransform();
     tr_translate.setTranslate(0,0);
     element.transform.baseVal.appendItem(tr_translate);
