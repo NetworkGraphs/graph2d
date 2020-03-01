@@ -22,33 +22,18 @@ A graph database can have thousands of vertices and edges. This engine is not in
 
 # Design and Dependencies
 ## Candidates
-* Graphics : vanilla vs library (SVG / webgl)
-  * [SVG.js](https://svgjs.com/docs/3.0/) SGV : slower but more concise code
-  * [Pixi.js](https://www.pixijs.com/) Render : webgl, Text, multi touch, webgl filters
-  * [Paper.js](http://paperjs.org/) Canvas, Scene graph and special curves and shapes, using scriptographer
-* javascrip physics engine
-  * vanilla js vs [matter.js](https://brm.io/matter-js/)
-## Graphics
-* multiple renderes will be supported
-  * simple : is SVG with SVG.js
-  * advanced 2D : Pixi.js
-  * advanced 3D : graph3d
-## Physics
-* [matter.js](https://brm.io/matter-js/)
+### Graphics
+Started with [SVG.js](https://svgjs.com/docs/3.0/) but was not convenient as it obscures the svg transform and the logic was more complex (at least to me to understand) than the svg specification, so vanilla js continued to be used and cleaning will be done to remove the dependency.
+Other evaluated libearies but not kepts are [Pixi.js](https://www.pixijs.com/) (Render : webgl, Text, multi touch, webgl filters) and [Paper.js](http://paperjs.org/) (Canvas, Scene graph and special curves and shapes, using scriptographer)
+### Physics
+[matter.js](https://brm.io/matter-js/), quite a successfull choice, impressive library from usability and documentation. Takes physics simulation very serious with simulation steps corrections among others, has a lot of examples, included vectors library,...
 
 ## Graphs
-* Vis.js for .dot import
-
-Existing Graph formats : 
-* GraphML (.graphml, .gml)
-* GEFX
-* Graphviz (.dot, .gv)
-* [GraphSON](https://github.com/thinkaurelius/faunus/wiki/GraphSON-Format)
+* [GraphSON](https://github.com/thinkaurelius/faunus/wiki/GraphSON-Format) and GraphML importers implemented (without dependencies), the xml nature makes the dom parsing quite convenient for javascript. Other evaluated and might be added (Vis.js for .dot import, .graphml, .gml, GEFX, .gv)
 
 ## Other dependencies
 * stats.js : 0.17.0
 * gui.js : as module
-* [gui-paper.js](https://github.com/google/paper-gui)
 
 # Development
 ## progress
@@ -63,10 +48,10 @@ Existing Graph formats :
 * svg filters for drop shadow, light and displacement
 * mouse wheel on vertices scales vertices and their labels
 * mouse drag on background pan zoom overall view, with mouse centered zoom
-
-## implementation plan
 * drag nodes with mouse
 * mouse button variants with touch number
+
+## implementation plan
 * lighten non neighbors to ease movement of neighbors
 * hover highlighted siblings push each other when too close
 * remove border walls
