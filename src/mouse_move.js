@@ -1,7 +1,7 @@
 import * as utils from "./../src/utils.js";
 import * as dat from "./gui_app.js";
 
-let state ={over_vertex:false,coord:{x:0,y:0},dragging:false,acting:false};
+let state ={over_vertex:false,coord:{x:0,y:0},offset:{x:0,y:0},dragging:false,acting:false};
 
 function init(element){
 
@@ -24,10 +24,10 @@ function onContext(e){
 }
 
 function onMousePan(e){
-    let mx = e.clientX;//e.offsetX
-    let my = e.clientY;//e.offsetY
-    let dx = mx - state.coord.x;
-    let dy = my - state.coord.y;
+    let dx = e.clientX - state.coord.x;
+    let dy = e.clientY - state.coord.y;
+    let vdx = e.offsetX - state.offset.x;
+    let vdy = e.offsetY - state.offset.y;
     if(state.dragging){
         if(e.type == "mouseup"){
             utils.send('graph_mouse',{type:'drag',start:false})
@@ -39,15 +39,17 @@ function onMousePan(e){
     }
     if((e.buttons == 1) && (e.type == "mousemove")){
         if(state.dragging){
-            utils.send('graph_mouse',{type:'vert_move',tx:dx,ty:dy});
+            utils.send('graph_mouse',{type:'vert_move',tx:vdx,ty:vdy});
         }else if(e.target.tagName == "svg"){//svg or div
             if(!state.dragging){
                 utils.send('graph_mouse',{type:'view_move',tx:dx,ty:dy});
             }
         }
     }
-    state.coord.x = mx;
-    state.coord.y = my;
+    state.coord.x = e.clientX;
+    state.coord.y = e.clientY;
+    state.offset.x = e.offsetX;
+    state.offset.y = e.offsetY;
     e.preventDefault();
     e.stopPropagation();
 }

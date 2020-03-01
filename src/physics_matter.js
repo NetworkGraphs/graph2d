@@ -126,7 +126,7 @@ function onViewMouse(e){
         //console.log(e.detail.tx)
         drag.position = Matter.Vector.add(drag.position,Matter.Vector.create(e.detail.tx,e.detail.ty));
         drag.constraint.pointB = drag.position;
-        console.log(drag.position)
+        //console.log(drag.position)
     }
 }
 
