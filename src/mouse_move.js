@@ -97,9 +97,11 @@ function onMouseVertex(e){
             state.over_vertex = true;
         }
     }else if(e.type == 'mouseenter'){
-        graph_events.push('hover');
-        start = true;
-        state.over_vertex = true;
+        if(!state.dragging){
+            graph_events.push('hover');
+            start = true;
+            state.over_vertex = true;
+        }
     }else if(['mouseleave','touchend'].includes(e.type)){
         if(!state.dragging){
             graph_events.push('hover');

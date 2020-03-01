@@ -1,12 +1,24 @@
+# Live demo
+
+[network graph with physics](https://networkgraphs.github.io/graph2d/)
+
+# Gif demo
+
+<img src="./media/demo.gif" width="800px">
+
+Demo actions : 
+ - keep left mouse down and drag vertex
+ - right click on vertex to bring neighbors close by
+ - drag empty area to pan the whole view
+ - mouse wheel on empty area to zoom in and out (zoom centered on pointer location)
+ - mouse wheel on vertex to scale vertices up and down.
+
 # graph2d
 Physics based network graph engine. Used for interactive graph exploration and morphing.
 
 ## concept introduction
 A graph database can have thousands of vertices and edges. This engine is not intended for rendering a high number of vertices that would look like a cloud. It is rather targetting the user analysis of vertices containing readable labels. So even if a graph contains a high number of vertices, it is possible to start at an initial entry point, and start showing the required neighbors only. At each step, the user can pin the interesting vertex and continue the explration of the required path like a mind map opening process. It is also possible to decide of which vertex parameter is turned into a clusturing group, this way morphing the graph visibility to focus on the features the user is interested in.
 
-# Live demo
-
-[network graph with physics](https://networkgraphs.github.io/graph2d/)
 
 # Design and Dependencies
 ## Candidates
